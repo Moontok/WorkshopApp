@@ -19,11 +19,13 @@ class GuiWindow(Ui_MainWindow):
     def setupUi(self, MainWindow):
         super().setupUi(MainWindow)
         self.fontSize = 8
+        self.smallestFontSize = 8
+        self.largestFontSize = 52
 
     def increaseFont(self):
-        '''Increase output font.'''
+        '''Increase output font if below size 52.'''
 
-        if self.fontSize < 52:
+        if self.fontSize < self.largestFontSize:
             text = self.textOutputField.toPlainText()
             self.fontSize += 4
             self.textOutputField.setFontPointSize(self.fontSize)
@@ -31,9 +33,9 @@ class GuiWindow(Ui_MainWindow):
 
     
     def decreaseFont(self):
-        '''Decrease output font.'''
+        '''Decrease output font if above size 8.'''
 
-        if self.fontSize > 8:
+        if self.fontSize > self.smallestFontSize:
             text = self.textOutputField.toPlainText()
             self.fontSize -= 4
             self.textOutputField.setFontPointSize(self.fontSize)

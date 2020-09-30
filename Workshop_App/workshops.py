@@ -33,7 +33,6 @@ class Workshops():
         }
 
         with Session() as s:
-            #url = "https://www.escweb.net/ar_esc/security/signin.aspx"
             url = self.urlInfo['signin']
 
             pageInfo = s.get(url)
@@ -43,7 +42,6 @@ class Workshops():
             login_data['__VIEWSTATE'] = soup.find('input', attrs={'name':'__VIEWSTATE'})['value']
 
             s.post(url, data=login_data)
-            #rawPageContent = s.get('https://www.escweb.net/ar_esc/instructor/default.aspx').text
             rawPageContent = s.get(self.urlInfo['targetInfoURL']).text
 
             pageContent = self.findMatches(rawPageContent)
@@ -79,7 +77,6 @@ class Workshops():
             workshop['workshopStartDate'] = search('[0-9]+/[0-9]+/[0-9]+', training)[0]
 
             workshop['workshopParticipantNumberInfo'] = search('[0-9]+ / [0-9]+', training)[0]
-            #workshop['workshopURL'] = f'https://www.escweb.net/ar_esc/catalog/session.aspx?session_id={workshop["workshopID"]}'
             workshop['workshopURL'] = f'{self.urlInfo["urlBase"]}{workshop["workshopID"]}'
 
             workshop['participantInfoList'] = self.generateParticipantInfo(session, workshop['workshopID'])
@@ -95,7 +92,6 @@ class Workshops():
     def generateParticipantInfo(self, session, ID):
         '''Returns the participant name, email, and school.'''
 
-        #url = f'https://www.escweb.net/ar_esc/instructor/instructor.aspx?session_id={ID}'
         url = f'{self.urlInfo["partInfoBaseURL"]}{ID}'
 
         pageContent = session.get(url).text # Get the html for the above url.
