@@ -19,7 +19,8 @@ def main():
     app = QApplication(sys.argv)
     MainWindow = QMainWindow()
     ui = GuiWindow()
-    ui.setupUi(MainWindow)
+    ui.setupUi(MainWindow)    
+    ui.textOutputField.insertPlainText('Welcome!')
 
     # Connect buttons and menu items.
     ui.buttonGetWorkshops.clicked.connect(lambda:generateWorkshopInfo(ui, ws))
@@ -49,7 +50,7 @@ def generateWorkshopInfo(ui, ws):
     except FileNotFoundError:
         ui.textOutputField.insertPlainText('Please enter your login credentials.')
         return
-
+    
     displayText = []
     displayText.append(f'\nNumber of matching workshops: {ws.getNumberOfWorkshops()}\n\n')
     displayText.append(f'Total Signed Up: {ws.getTotalNumberOfParticipants()}\n\n')
