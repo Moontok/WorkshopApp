@@ -33,10 +33,10 @@ def main():
     sys.exit(app.exec_())
 
 def generateWorkshopInfo(ui, ws):
-    '''Output the desired content based on keywords.'''
+    '''Output the desired content based on a phrase.'''
 
     ui.textOutputField.clear()
-    ws.setKeywords(ui.keywordInputField.text())
+    ws.setPhrase(ui.phraseInputField.text())
 
     try:
         ws.connectAndGenerateInformation()

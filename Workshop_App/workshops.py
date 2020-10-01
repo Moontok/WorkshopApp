@@ -14,7 +14,7 @@ class Workshops():
     '''A class that contains all the workshop data and methods to get and work on that data.'''
 
     def __init__(self):
-        self.workshopKeywords = ''
+        self.workshopPhrase = ''
         self.userName = ''
         self.userPassword = ''
         self.workshopList = {}
@@ -50,11 +50,28 @@ class Workshops():
 
 
     def findMatches(self, content):
-        '''Finds all workshops that match the keywords defined.'''
+        '''Finds all workshops that match the phrase defined.'''
+        
+        # Case Sensitive Version
+        # seekingText = f'em>.*{self.workshopPhrase}.*\\n.*/td>'
+        # rawList = findall(seekingText, content, M)
+        # return rawList
 
-        seekingText = f'em>.*{self.workshopKeywords}.*\\n.*/td>'
-        rawList = findall(seekingText, content, M)
-        return rawList
+        # Case Insensitive Version
+        seekingText = f'em>.*{self.workshopPhrase.lower()}.*\\n.*/td>'
+        loweredContent = content.lower()
+        listOfWorkshops = []
+
+        while True:
+            rawList = search(seekingText, loweredContent, M)
+            if rawList == None:
+                break
+            
+            listOfWorkshops.append(content[rawList.start():rawList.end()+1])
+            replaceWith = '#'*len(rawList.group())
+            loweredContent = loweredContent.replace(rawList.group(), replaceWith, 1)
+
+        return listOfWorkshops
 
 
     def cleanAndOrganizeInformation(self, session, pageContent):
@@ -112,7 +129,7 @@ class Workshops():
 
 
     def getNumberOfWorkshops(self):
-        '''Returns the total number of workshops that match keywords.'''
+        '''Returns the total number of workshops that match phrase.'''
 
         return len(self.workshopList)
 
@@ -129,7 +146,7 @@ class Workshops():
 
 
     def getWorkshops(self):
-        '''Returns a list of all the workshop dictionaries that matched the keywords.'''
+        '''Returns a list of all the workshop dictionaries that matched the phrase.'''
 
         return self.workshopList
 
@@ -140,10 +157,10 @@ class Workshops():
         return self.numberOfParticipants
 
 
-    def setKeywords(self, keywords):
-        '''Sets the keywords to be used in the search process.'''
+    def setPhrase(self, phrase):
+        '''Sets the phrase to be used in the search process.'''
 
-        self.workshopKeywords = keywords
+        self.workshopPhrase = phrase
 
 
     def storeUserInfo(self):
