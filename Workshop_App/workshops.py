@@ -59,19 +59,28 @@ class Workshops():
 
         # Case Insensitive Version
         seekingText = f'em>.*{self.workshopPhrase.lower()}.*\\n.*/td>'
+
+        # Make a lowercase copy of the original to search
         loweredContent = content.lower()
-        listOfWorkshops = []
+        listOfWorkshopsFound = []
+        findingWorkshops = True
 
-        while True:
-            rawList = search(seekingText, loweredContent, M)
-            if rawList == None:
-                break
-            
-            listOfWorkshops.append(content[rawList.start():rawList.end()+1])
-            replaceWith = '#'*len(rawList.group())
-            loweredContent = loweredContent.replace(rawList.group(), replaceWith, 1)
+        while findingWorkshops:
+            matchFound = search(seekingText, loweredContent, M) # Get the first matching item.
 
-        return listOfWorkshops
+            if matchFound != None:
+                # Found a match and pull the original scraped Text (Case) by start and end index
+                listOfWorkshopsFound.append(content[matchFound.start() : matchFound.end() + 1])
+
+                # Replace the matched string with the same number of #'s to preserve indices
+                # and so it will not be found again using search()
+                replaceWith = '#' * len(matchFound.group())
+                loweredContent = loweredContent.replace(matchFound.group(), replaceWith, 1)
+            else:
+                # If no match is found, terminate the loop.
+                findingWorkshops = False
+
+        return listOfWorkshopsFound
 
 
     def cleanAndOrganizeInformation(self, session, pageContent):
