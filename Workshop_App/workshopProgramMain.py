@@ -19,11 +19,12 @@ def main():
     app = QApplication(sys.argv)
     MainWindow = QMainWindow()
     ui = GuiWindow()
-    ui.setupUi(MainWindow)    
-    ui.textOutputField.insertPlainText('Welcome!')
+    ui.setupUi(MainWindow)
+    
+    ui.textOutputField.insertPlainText(welcomeText())
 
     # Connect buttons and menu items.
-    ui.buttonGetWorkshops.clicked.connect(lambda:generateWorkshopInfo(ui, ws))
+    ui.buttonGetWorkshops.clicked.connect(lambda:generateWorkshopInfo(MainWindow, ui, ws))
     ui.actionIncrease_CTRL.triggered.connect(ui.increaseFont)
     ui.actionDecrease_CTRL.triggered.connect(ui.decreaseFont)
     ui.actionUpdate_Credentials.triggered.connect(lambda:ui.credsPopupBox(ws))
@@ -33,10 +34,13 @@ def main():
     MainWindow.show()
     sys.exit(app.exec_())
 
-def generateWorkshopInfo(ui, ws):
+def generateWorkshopInfo(MainWindow, ui, ws):
     '''Output the desired content based on a phrase.'''
 
     ui.textOutputField.clear()
+    
+    ui.textOutputField.insertPlainText('Collecting all workshop information...')
+    MainWindow.repaint() # Repaint Window to show text above.
     ws.setPhrase(ui.phraseInputField.text())
 
     try:
@@ -98,6 +102,18 @@ def generateWorkshopInfo(ui, ws):
     ui.textOutputField.clear()
     ui.textOutputField.insertPlainText(''.join(displayText))
 
+def welcomeText():
+    '''Text that first appears in output window.'''
+
+    text = [
+        'Welcome!',
+        '',
+        'This program will allow you to seach current workshops using a phrase.',
+        'Type a phrase that you would like to search in the "Search Phrase:" field.',
+        'The phrase does not have to be case sensative.',
+        'Leave the "Search Phrase:" field blank to get all current workshops.']
+
+    return '\n'.join(text)
 
 if __name__ == '__main__':
     main()
