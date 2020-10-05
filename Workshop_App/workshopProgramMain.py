@@ -29,8 +29,6 @@ def main():
     ui.actionDecrease_CTRL.triggered.connect(ui.decreaseFont)
     ui.actionUpdate_Credentials.triggered.connect(lambda:ui.credsPopupBox(ws))
 
-    ui.textOutputField.setReadOnly(True)
-
     MainWindow.show()
     sys.exit(app.exec_())
 

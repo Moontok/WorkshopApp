@@ -6,6 +6,8 @@ the workshopGUI from QT Designer.
 '''
 
 from PyQt5.QtWidgets import QDialog, QMessageBox, QLineEdit
+from PyQt5.QtCore import QRegExp
+from PyQt5.QtGui import QRegExpValidator
 from loginDialog import Ui_LoginDialog
 from workshopGUI import Ui_MainWindow
 
@@ -21,6 +23,8 @@ class GuiWindow(Ui_MainWindow):
         self.fontSize = 8
         self.smallestFontSize = 8
         self.largestFontSize = 52
+        self.textOutputField.setReadOnly(True)
+        self.phraseInputField.setValidator(QRegExpValidator(QRegExp('[A-Za-z0-9,\'" !&?]*')))
 
     def increaseFont(self):
         '''Increase output font if below size 52.'''
