@@ -44,7 +44,7 @@ def generateWorkshopInfo(MainWindow, ui, ws):
     ws.setPhrase(ui.phraseInputField.text())
 
     try:
-        ws.connectAndGenerateInformation()
+        ws.connectAndCollectInformation()
     except ConnectionError:
         ui.textOutputField.insertPlainText('Cannot connect to server...\nCheck internet connection.')
         return
@@ -54,7 +54,7 @@ def generateWorkshopInfo(MainWindow, ui, ws):
     except FileNotFoundError:
         ui.textOutputField.insertPlainText('Please enter your login credentials.')
         return
-    
+
     displayText = []
     displayText.append(f'\nNumber of matching workshops: {ws.getNumberOfWorkshops()}\n\n')
     displayText.append(f'Total Signed Up: {ws.getTotalNumberOfParticipants()}\n\n')
@@ -63,7 +63,7 @@ def generateWorkshopInfo(MainWindow, ui, ws):
     # workshops keys:'workshopID', 'workshopName', 'workshopStartDate', 'workshopParticipantNumberInfo', 'workshopURL', 'participantInfoList'
     # participantInfoList [name, email, school]
 
-    if ui.radioWsID.isChecked() or ui.radioWsStartDate.isChecked() or ui.radioPartNumbers.isChecked() or ui.radioWsName.isChecked() or ui.radioWsURLs.isChecked():
+    if buttonsChecked(ui):
         for workshop in ws.getWorkshops():
             text = []
             if ui.radioWsID.isChecked():
@@ -102,6 +102,7 @@ def generateWorkshopInfo(MainWindow, ui, ws):
     ui.textOutputField.clear()
     ui.textOutputField.insertPlainText(''.join(displayText))
 
+
 def welcomeText():
     '''Text that first appears in output window.'''
 
@@ -114,6 +115,12 @@ def welcomeText():
         'Leave the "Search Phrase:" field blank to get all current workshops.']
 
     return '\n'.join(text)
+
+
+def buttonsChecked(ui):
+    ''' Return true if any button is checked. '''
+
+    return ui.radioWsID.isChecked() or ui.radioWsStartDate.isChecked() or ui.radioPartNumbers.isChecked() or ui.radioWsName.isChecked() or ui.radioWsURLs.isChecked()
 
 if __name__ == '__main__':
     main()

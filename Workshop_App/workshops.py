@@ -21,7 +21,7 @@ class Workshops():
         self.numberOfParticipants = 0
         self.urlInfo = self.getURLInfo()
 
-    def connectAndGenerateInformation(self):
+    def connectAndCollectInformation(self):
         '''Connect to the escWorks webpage, login, and collect page content.'''
                 
         self.getUserInfo()            
