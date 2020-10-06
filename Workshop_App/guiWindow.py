@@ -20,7 +20,7 @@ class GuiWindow(Ui_MainWindow):
 
     def setupUi(self, MainWindow):
         super().setupUi(MainWindow)
-        self.fontSize = 8
+        self.fontSize = 12
         self.smallestFontSize = 8
         self.largestFontSize = 52
         self.textOutputField.setReadOnly(True)
