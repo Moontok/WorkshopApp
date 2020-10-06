@@ -24,7 +24,7 @@ class GuiWindow(Ui_MainWindow):
         self.smallestFontSize = 8
         self.largestFontSize = 52
         self.textOutputField.setReadOnly(True)
-        self.phraseInputField.setValidator(QRegExpValidator(QRegExp('[A-Za-z0-9,\'" !&?]*')))
+        #self.phraseInputField.setValidator(QRegExpValidator(QRegExp('[A-Za-z0-9,\'" !&?]*')))
 
     def increaseFont(self):
         '''Increase output font if below size 52.'''

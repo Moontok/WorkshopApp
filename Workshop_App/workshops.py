@@ -168,6 +168,10 @@ class Workshops():
 
     def setPhrase(self, phrase):
         '''Sets the phrase to be used in the search process.'''
+        
+        replaceSymbols = '[]\\.^$*+{}|()'
+        for symbol in replaceSymbols:
+            phrase = phrase.replace(symbol, f'\\{symbol}')
 
         self.workshopPhrase = phrase
 
