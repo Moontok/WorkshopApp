@@ -30,7 +30,7 @@ class Workshops():
             'ctl00$mainBody$txtUserName': self.userName,
             'ctl00$mainBody$txtPassword': self.userPassword,
             'ctl00$mainBody$btnSubmit': 'Submit'
-        }
+            }
 
         with Session() as s:
             url = self.urlInfo['signin']
@@ -38,14 +38,14 @@ class Workshops():
             pageInfo = s.get(url)
             soup = BeautifulSoup(pageInfo.content, 'html.parser')
 
-            login_data['__EVENTVALIDATION'] = soup.find('input', attrs={'name':'__EVENTVALIDATION'})['value']
+            login_data['__EVENTVALIDATION'] = soup.find('input', attrs={'name':'__EVENTVALIDATION'})['value']            
             login_data['__VIEWSTATE'] = soup.find('input', attrs={'name':'__VIEWSTATE'})['value']
 
             s.post(url, data=login_data)
             rawPageContent = s.get(self.urlInfo['targetInfoURL']).text
 
             pageContent = self.findMatches(rawPageContent)
-        
+
             self.cleanAndOrganizeInformation(s, pageContent)
 
 
