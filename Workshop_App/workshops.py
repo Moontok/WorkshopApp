@@ -51,11 +51,6 @@ class Workshops():
 
     def findMatches(self, content):
         '''Finds all workshops that match the phrase defined.'''
-        
-        # Case Sensitive Version
-        # seekingText = f'em>.*{self.workshopPhrase}.*\\n.*/td>'
-        # rawList = findall(seekingText, content, M)
-        # return rawList
 
         # Case Insensitive Version
         seekingText = f'em>.*{self.workshopPhrase.lower()}.*\\n.*/td>'
@@ -111,7 +106,7 @@ class Workshops():
             
             participantTotal += int(workshop['workshopParticipantNumberInfo'].split(' / ')[0])
 
-        self.workshopList = workshops
+        self.workshopList = workshops        
         self.numberOfParticipants = participantTotal
 
 
