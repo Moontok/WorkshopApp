@@ -81,7 +81,7 @@ class Workshops():
     def cleanAndOrganizeInformation(self, session, pageContent):
         '''
         This function searches through pageContent and finds specific data items:
-        'workshopID', 'workshopName', 'workshopStartDate', 'workshopStartDate', 'workshopParticipantNumberInfo',
+        'workshopID', 'workshopName', 'workshopStartDate', 'workshopParticipantNumberInfo',
         'workshopURL', 'participantInfoList'
         '''
 

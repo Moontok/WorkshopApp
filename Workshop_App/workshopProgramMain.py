@@ -10,6 +10,7 @@ from requests.exceptions import ConnectionError
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox
 from workshops import Workshops
 from guiWindow import GuiWindow
+from database import WorkshopDatabase
 
 def main():
     '''Main'''
@@ -33,7 +34,7 @@ def main():
     sys.exit(app.exec_())
 
 def generateWorkshopInfo(MainWindow, ui, ws):
-    '''Output the desired content based on a phrase.'''
+    '''Output the desired content based on a phrase.'''    
 
     ui.textOutputField.clear()
     
@@ -95,7 +96,7 @@ def generateWorkshopInfo(MainWindow, ui, ws):
                     displayText.append('\n')
             
             displayText.append('\n')
-    
+
     displayText.append(f'All emails for these workshops:\n\n{ws.getEmails()}')
     ui.textOutputField.clear()
     ui.textOutputField.insertPlainText(''.join(displayText))
