@@ -90,7 +90,7 @@ class Workshops():
 
         for training in pageContent:
             workshop = {}
-            workshop['workshopID'] = search('[0-9]+', training)[0]
+            workshop['workshopID'] = int(search('[0-9]+', training)[0])
             
             rawName = search('-.*</em>', training)[0]
             workshop['workshopName'] = rawName[2:-5]
@@ -205,3 +205,4 @@ class Workshops():
 
 if __name__ == '__main__':
     print('This is a module...')
+

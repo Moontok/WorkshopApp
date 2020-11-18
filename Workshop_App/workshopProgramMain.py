@@ -10,7 +10,7 @@ from requests.exceptions import ConnectionError
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox
 from workshops import Workshops
 from guiWindow import GuiWindow
-from database import WorkshopDatabase
+from database import WorkshopDatabase #################################
 
 def main():
     '''Main'''
@@ -57,6 +57,8 @@ def generateWorkshopInfo(MainWindow, ui, ws):
     displayText = []
     displayText.append(f'\nNumber of matching workshops: {ws.getNumberOfWorkshops()}\n\n')
     displayText.append(f'Total Signed Up: {ws.getTotalNumberOfParticipants()}\n\n')
+
+    updateWorkshopDatabase(ws) ################################
 
     # Useful information when using:
     # workshops keys:'workshopID', 'workshopName', 'workshopStartDate', 'workshopParticipantNumberInfo', 'workshopURL', 'participantInfoList'
@@ -120,6 +122,18 @@ def buttonsChecked(ui):
     ''' Return true if any button is checked. '''
 
     return ui.radioWsID.isChecked() or ui.radioWsStartDate.isChecked() or ui.radioPartNumbers.isChecked() or ui.radioWsName.isChecked() or ui.radioWsURLs.isChecked()
+
+def updateWorkshopDatabase(ws):
+    '''Updates the Workshop Database.'''
+    
+    wd = WorkshopDatabase()
+
+    for workshop in ws.getWorkshops():
+        if wd.lookupWorkshop(workshop) == None:
+            wd.addWorkshop(workshop)
+        else:
+            wd.replaceWorkshop(workshop)
+    wd.showWorkshops()
 
 if __name__ == '__main__':
     main()
