@@ -2,7 +2,8 @@
 Workshop information gatherer.
 
 This program gathers information about our teams workshops by
-gathering the information directly from the website.
+gathering the information directly from the website and storing
+it into a searchable database.
 '''
 
 import sys
@@ -10,25 +11,34 @@ from requests.exceptions import ConnectionError
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox
 from workshops import Workshops
 from guiWindow import GuiWindow
-from database import WorkshopDatabase #################################
+
 
 def main():
     '''Main'''
 
-    ws = Workshops()
+    ws = Workshops()    
 
     app = QApplication(sys.argv)
     MainWindow = QMainWindow()
     ui = GuiWindow()
     ui.setupUi(MainWindow)
-    
-    ui.textOutputField.insertPlainText(welcomeText())
+
+    try:
+        ws.connectAndUpdateDatabase()    
+        ui.textOutputField.insertPlainText(welcomeText())
+    except ConnectionError:
+        ui.textOutputField.insertPlainText('Cannot connect to server...\nCheck internet connection.')
+    except TypeError:
+        ui.textOutputField.insertPlainText('Something went wrong when connecting to server...\nTry again later.')
+    except FileNotFoundError:
+        ui.textOutputField.insertPlainText('Please enter your login credentials.')
 
     # Connect buttons and menu items.
     ui.buttonGetWorkshops.clicked.connect(lambda:generateWorkshopInfo(MainWindow, ui, ws))
     ui.actionIncrease_CTRL.triggered.connect(ui.increaseFont)
     ui.actionDecrease_CTRL.triggered.connect(ui.decreaseFont)
     ui.actionUpdate_Credentials.triggered.connect(lambda:ui.credsPopupBox(ws))
+    ui.actionUpdate_Database.triggered.connect(ws.connectAndUpdateDatabase)
 
     MainWindow.show()
     sys.exit(app.exec_())
@@ -40,43 +50,36 @@ def generateWorkshopInfo(MainWindow, ui, ws):
     
     ui.textOutputField.insertPlainText('Collecting all workshop information...')
     MainWindow.repaint() # Repaint Window to show text above.
-    ws.setPhrase(ui.phraseInputField.text())
-
-    try:
-        ws.connectAndCollectInformation()
-    except ConnectionError:
-        ui.textOutputField.insertPlainText('Cannot connect to server...\nCheck internet connection.')
-        return
-    except TypeError:
-        ui.textOutputField.insertPlainText('Something went wrong when connecting to server...\nTry again later.')
-        return
-    except FileNotFoundError:
-        ui.textOutputField.insertPlainText('Please enter your login credentials.')
-        return
+    ws.setPhrase(ui.keywordInputField.text())
+    
+    
+    if ui.radioUseDate.isChecked():
+        workshops = ws.getMatchingWorkshops(startDate=ui.calendarWidget_StartDate.selectedDate().getDate(),
+                                            endDate=ui.calendarWidget_EndDate.selectedDate().getDate())
+    else:
+        workshops = ws.getMatchingWorkshops()
 
     displayText = []
     displayText.append(f'\nNumber of matching workshops: {ws.getNumberOfWorkshops()}\n\n')
-    displayText.append(f'Total Signed Up: {ws.getTotalNumberOfParticipants()}\n\n')
-
-    updateWorkshopDatabase(ws) ################################
+    displayText.append(f'Total Signed Up: {ws.getNumberOfParticipants()}\n\n')
 
     # Useful information when using:
-    # workshops keys:'workshopID', 'workshopName', 'workshopStartDate', 'workshopParticipantNumberInfo', 'workshopURL', 'participantInfoList'
+    # Workshop Entry Structure: [id, workshopID, workshopName, workshopStartDateAndTime, workshopSignedUp, workshopParticipantCapacity, workshopURL, [participantInfoList]]
     # participantInfoList [name, email, school]
 
     if buttonsChecked(ui):
-        for workshop in ws.getWorkshops():
+        for workshop in workshops:
             text = []
             if ui.radioWsID.isChecked():
-                text.append(f"{workshop['workshopID']}")
+                text.append(f"{workshop[1]}") # workshopID
             if ui.radioWsStartDate.isChecked():
-                text.append(f"{workshop['workshopStartDate']}")
+                text.append(f"{workshop[3]}") # workshopStartDate
             if ui.radioPartNumbers.isChecked():
-                text.append(f"{workshop['workshopParticipantNumberInfo']}")
+                text.append(f"{workshop[4]}/{workshop[5]}") # workshopSignedUp/workshopParticipantCapacity
             if ui.radioWsName.isChecked():
-                text.append(f"{workshop['workshopName']}")
+                text.append(f"{workshop[2]}") # workshopName
             if ui.radioWsURLs.isChecked():
-                text.append(f"\n   Url: {workshop['workshopURL']}")
+                text.append(f"\n   Url: {workshop[6]}") # workshopURL
 
             displayText.append(" - ".join(text))            
             displayText.append('\n')
@@ -85,7 +88,7 @@ def generateWorkshopInfo(MainWindow, ui, ws):
 
                 displayText.append('   Contact Information:\n')
             
-                for participantInfo in workshop['participantInfoList']:
+                for participantInfo in workshop[7]: # participantInfoList
                     text = []
                     if ui.radioNames.isChecked():
                         text.append(f"{participantInfo[0]}")
@@ -99,9 +102,10 @@ def generateWorkshopInfo(MainWindow, ui, ws):
             
             displayText.append('\n')
 
-    displayText.append(f'All emails for these workshops:\n\n{ws.getEmails()}')
+    displayText.append(f'All emails for these workshops:\n\n{ws.getEmails(workshops)}')
     ui.textOutputField.clear()
     ui.textOutputField.insertPlainText(''.join(displayText))
+    
 
 
 def welcomeText():
@@ -111,7 +115,7 @@ def welcomeText():
         'Welcome!',
         '',
         'This program will allow you to seach current workshops using a phrase.',
-        'Type a phrase that you would like to search in the "Search Phrase:" field.',
+        'Type a phrase that you would like to search in the "Phrase:" field.',
         'The phrase does not have to be case sensative.',
         'Leave the "Search Phrase:" field blank to get all current workshops.']
 
@@ -123,17 +127,6 @@ def buttonsChecked(ui):
 
     return ui.radioWsID.isChecked() or ui.radioWsStartDate.isChecked() or ui.radioPartNumbers.isChecked() or ui.radioWsName.isChecked() or ui.radioWsURLs.isChecked()
 
-def updateWorkshopDatabase(ws):
-    '''Updates the Workshop Database.'''
-    
-    wd = WorkshopDatabase()
-
-    for workshop in ws.getWorkshops():
-        if wd.lookupWorkshop(workshop) == None:
-            wd.addWorkshop(workshop)
-        else:
-            wd.replaceWorkshop(workshop)
-    wd.showWorkshops()
 
 if __name__ == '__main__':
     main()

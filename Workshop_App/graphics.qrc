@@ -1,0 +1,5 @@
+<RCC>
+  <qresource prefix="Logo">
+    <file>2018_CS_Logo_Square.png</file>
+  </qresource>
+</RCC>

@@ -6,23 +6,26 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>875</width>
-    <height>571</height>
+    <width>1132</width>
+    <height>778</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Workshop App</string>
   </property>
   <property name="windowIcon">
-   <iconset>
-    <normaloff>ADE_CS_Final_Design_Color.png</normaloff>ADE_CS_Final_Design_Color.png</iconset>
+   <iconset resource="Resources/graphics.qrc">
+    <normaloff>:/Logo/2018_CS_Logo_Square.png</normaloff>:/Logo/2018_CS_Logo_Square.png</iconset>
+  </property>
+  <property name="styleSheet">
+   <string notr="true"/>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
      <widget class="QFrame" name="frame">
       <property name="frameShape">
-       <enum>QFrame::StyledPanel</enum>
+       <enum>QFrame::NoFrame</enum>
       </property>
       <property name="frameShadow">
        <enum>QFrame::Raised</enum>
@@ -42,7 +45,7 @@
                 </font>
                </property>
                <property name="text">
-                <string>Keywords:</string>
+                <string>Phrase:</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignCenter</set>
@@ -58,12 +61,92 @@
                </property>
               </widget>
              </item>
+             <item>
+              <widget class="QPushButton" name="buttonGetWorkshops">
+               <property name="font">
+                <font>
+                 <pointsize>18</pointsize>
+                </font>
+               </property>
+               <property name="text">
+                <string>SEARCH</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <widget class="QRadioButton" name="radioUseDate">
+             <property name="font">
+              <font>
+               <pointsize>18</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>Include Date Range</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_4">
+             <item>
+              <widget class="QLabel" name="startDateLabel">
+               <property name="font">
+                <font>
+                 <pointsize>18</pointsize>
+                </font>
+               </property>
+               <property name="text">
+                <string>Start Date of Search:</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="endDateLabel">
+               <property name="font">
+                <font>
+                 <pointsize>18</pointsize>
+                </font>
+               </property>
+               <property name="text">
+                <string>End Date of Search:</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_3">
+             <item>
+              <widget class="QCalendarWidget" name="calendarWidget_StartDate"/>
+             </item>
+             <item>
+              <widget class="QCalendarWidget" name="calendarWidget_EndDate"/>
+             </item>
             </layout>
            </item>
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_2">
+             <property name="sizeConstraint">
+              <enum>QLayout::SetDefaultConstraint</enum>
+             </property>
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
              <item>
               <layout class="QVBoxLayout" name="verticalLayout_3">
+               <item>
+                <widget class="QLabel" name="label_2">
+                 <property name="font">
+                  <font>
+                   <pointsize>18</pointsize>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>Displayed Information:</string>
+                 </property>
+                </widget>
+               </item>
                <item>
                 <widget class="QRadioButton" name="radioWsName">
                  <property name="font">
@@ -73,6 +156,9 @@
                  </property>
                  <property name="text">
                   <string>Workshop Name</string>
+                 </property>
+                 <property name="checked">
+                  <bool>true</bool>
                  </property>
                  <property name="autoExclusive">
                   <bool>false</bool>
@@ -139,6 +225,22 @@
                  </property>
                 </widget>
                </item>
+               <item>
+                <widget class="QFrame" name="frame_3">
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>0</height>
+                  </size>
+                 </property>
+                 <property name="frameShape">
+                  <enum>QFrame::NoFrame</enum>
+                 </property>
+                 <property name="frameShadow">
+                  <enum>QFrame::Raised</enum>
+                 </property>
+                </widget>
+               </item>
               </layout>
              </item>
              <item>
@@ -151,7 +253,7 @@
                   </font>
                  </property>
                  <property name="text">
-                  <string>Participant Info:</string>
+                  <string>Participant Information:</string>
                  </property>
                  <property name="alignment">
                   <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -212,7 +314,45 @@
                  </property>
                 </widget>
                </item>
+               <item>
+                <widget class="QFrame" name="frame_2">
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>100</height>
+                  </size>
+                 </property>
+                 <property name="frameShape">
+                  <enum>QFrame::NoFrame</enum>
+                 </property>
+                 <property name="frameShadow">
+                  <enum>QFrame::Plain</enum>
+                 </property>
+                </widget>
+               </item>
               </layout>
+             </item>
+             <item>
+              <widget class="QLabel" name="label">
+               <property name="maximumSize">
+                <size>
+                 <width>256</width>
+                 <height>256</height>
+                </size>
+               </property>
+               <property name="styleSheet">
+                <string notr="true"/>
+               </property>
+               <property name="text">
+                <string/>
+               </property>
+               <property name="pixmap">
+                <pixmap resource="Resources/graphics.qrc">:/Logo/2018_CS_Logo_Square.png</pixmap>
+               </property>
+               <property name="scaledContents">
+                <bool>true</bool>
+               </property>
+              </widget>
              </item>
             </layout>
            </item>
@@ -221,19 +361,10 @@
          <item>
           <layout class="QVBoxLayout" name="verticalLayout_5">
            <item>
-            <widget class="QPushButton" name="buttonGetWorkshops">
-             <property name="font">
-              <font>
-               <pointsize>28</pointsize>
-              </font>
-             </property>
-             <property name="text">
-              <string>Get Workshops</string>
-             </property>
-            </widget>
-           </item>
-           <item>
             <widget class="QScrollArea" name="scrollArea">
+             <property name="frameShape">
+              <enum>QFrame::NoFrame</enum>
+             </property>
              <property name="widgetResizable">
               <bool>true</bool>
              </property>
@@ -242,8 +373,8 @@
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>831</width>
-                <height>183</height>
+                <width>1092</width>
+                <height>116</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -268,30 +399,31 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>875</width>
-     <height>21</height>
+     <width>1132</width>
+     <height>20</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menuFont">
+   <widget class="QMenu" name="menuActions">
     <property name="title">
-     <string>Font</string>
+     <string>Actions</string>
+    </property>
+    <addaction name="actionUpdate_Credentials"/>
+    <addaction name="actionUpdate_Database"/>
+   </widget>
+   <widget class="QMenu" name="menuView">
+    <property name="title">
+     <string>View</string>
     </property>
     <addaction name="actionIncrease_CTRL"/>
     <addaction name="actionDecrease_CTRL"/>
    </widget>
-   <widget class="QMenu" name="menuLogin">
-    <property name="title">
-     <string>Login</string>
-    </property>
-    <addaction name="actionUpdate_Credentials"/>
-   </widget>
-   <addaction name="menuFont"/>
-   <addaction name="menuLogin"/>
+   <addaction name="menuActions"/>
+   <addaction name="menuView"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionIncrease_CTRL">
    <property name="text">
-    <string>Increase CTRL + =</string>
+    <string>Increase Font    CTRL + =</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+=</string>
@@ -299,7 +431,7 @@
   </action>
   <action name="actionDecrease_CTRL">
    <property name="text">
-    <string>Decrease CTRL + -</string>
+    <string>Decrease Font    CTRL + -</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+-</string>
@@ -310,7 +442,14 @@
     <string>Update Credentials</string>
    </property>
   </action>
+  <action name="actionUpdate_Database">
+   <property name="text">
+    <string>Update Database</string>
+   </property>
+  </action>
  </widget>
- <resources/>
+ <resources>
+  <include location="Resources/graphics.qrc"/>
+ </resources>
  <connections/>
 </ui>

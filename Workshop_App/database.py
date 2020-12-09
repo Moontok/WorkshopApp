@@ -6,58 +6,76 @@ class WorkshopDatabase:
     def __init__(self):
         self.connection = connect('workshops.db')
         self.c = self.connection.cursor()
-        self.createWorkshopsTable()
 
-    def createWorkshopsTable(self):
-        '''Setup database.'''
+    def createWorkshopsTables(self):
+        '''Setup workshop database.'''
+
+        self.dropTables() # Clear the tables in the database.
 
         self.c.execute('''CREATE TABLE IF NOT EXISTS workshops (
                     id INTEGER PRIMARY KEY,
+                    workshopID TEXT NOT NULL,
+                    workshopName TEXT NOT NULL,
+                    workshopStartDateAndTime TEXT NOT NULL,
+                    workshopSignedUp TEXT NOT NULL,
+                    workshopParticipantCapacity TEXT NOT NULL,
+                    workshopURL TEXT NOT NULL
+                    );''')
+
+        self.c.execute('''CREATE TABLE IF NOT EXISTS participantInformation (
+                    id INTEGER PRIMARY KEY,
+                    workshopID TEXT NOT NULL,
                     name TEXT NOT NULL,
-                    startDate TEXT NOT NULL,
-                    participantNumberInfo TEXT NOT NULL,
-                    uRL TEXT NOT NULL,
-                    participantInfo TEXT NOT NULL
+                    email TEXT NOT NULL,
+                    school TEXT NOT NULL
+                    );''')
+
+        self.c.execute('''CREATE TABLE IF NOT EXISTS creationDate (
+                    id INTEGER PRIMARY KEY,
+                    lastUpdated TEXT NOT NULL
                     );''')
 
 
-    def addWorkshop(self, wd):
+    def addWorkshop(self, wsDict):
         '''Add workshop to database.'''
 
-        participantInfo = 'No participants'
-        for participant in wd['participantInfoList']:
-            if participantInfo == 'No participants':
-                participantInfo = f'{"".join(participant)}'
-            else:
-                participantInfo = f'{participantInfo} -- {";".join(participant)}'
+        self.c.execute('INSERT INTO workshops (workshopID, workshopName, workshopStartDateAndTime, workshopSignedUp, workshopParticipantCapacity, workshopURL) VALUES (?,?,?,?,?,?)',
+            (wsDict['workshopID'], wsDict['workshopName'], wsDict['workshopStartDateAndTime'], wsDict['workshopSignedUp'], wsDict['workshopParticipantCapacity'], wsDict['workshopURL']))
 
-        self.c.execute('INSERT INTO workshops (id, name, startDate, participantNumberInfo, uRL, participantInfo) VALUES (?,?,?,?,?,?)',
-            (wd['workshopID'], wd['workshopName'], wd['workshopStartDate'], wd['workshopParticipantNumberInfo'], wd['workshopURL'], participantInfo))
+        for participant in wsDict['workshopParticipantInfoList']:
+            self.c.execute('INSERT INTO participantInformation (workshopID, name, email, school) VALUES (?,?,?,?)',
+                (wsDict['workshopID'], participant['name'], participant['email'], participant['school']))
+
         self.connection.commit()
 
 
-    def lookupWorkshop(self, wd):
-        '''Lookup workshop and return it or None if workshop is not in database.'''
-
-        for workshop in self.c.execute('SELECT * FROM workshops'):
-            if workshop[0] == wd['workshopID']:
-                return workshop
-        return None
-
-
-    def replaceWorkshop(self, wd):
-        '''Replace any workshops if they already exist.'''
-
-        self.c.execute('DELETE FROM workshops WHERE id = ?', (wd['workshopID'],))
-        self.addWorkshop(wd)
-
-
-    def showWorkshops(self):
+    def getAllWorkshops(self):
         '''Print all workshops in database for testing purposes.'''
 
+        workshops = []
         for workshop in self.c.execute('SELECT * FROM workshops'):
-            print('-')
-            print(workshop)
+            workshops.append(workshop)
+
+        return workshops
+
+
+    def getParticipantInfoForWorkshop(self, workshopID):
+        '''Retrieve the partipant information that corresponds to the id.'''
+        return self.c.execute('SELECT name, email, school FROM participantInformation WHERE workshopID = ?', (workshopID,))
+
+
+    def dropTables(self):
+        ''' Clear all tables in the database.'''
+
+        self.c.execute('DROP TABLE IF EXISTS workshops;',)
+        self.c.execute('DROP TABLE IF EXISTS participantInformation;',)
+
+
+    def closeConnection(self):
+        ''' Closes the database connection.'''
+
+        self.c.close()
+        self.connection.close()
 
 
 if __name__ == '__main__':
