@@ -25,9 +25,7 @@ class Workshops():
 
     def connectAndUpdateDatabase(self):
         '''Connects to the escWorks webpage, logins, gather workshops, and add them to the database.'''
-        wsDB = WorkshopDatabase()
-        wsDB.createWorkshopsTables()
-
+        
         self.getUserInfo()         
 
         login_data = {
@@ -55,6 +53,9 @@ class Workshops():
             # Convert to list for slicing and remove table headers, blank lines, and non-workshop related information.
             # Specific to the layout of the content scraped.
             workshopsContent = [list(x)[3:-1:2] for x in workshopsContent[1:]]
+            
+            wsDB = WorkshopDatabase()
+            wsDB.createWorkshopsTables()
 
             for workshopInfo in workshopsContent:
                 workshopDict = {}
@@ -166,7 +167,7 @@ class Workshops():
         emails = ';\n'.join(emailList)
 
         if emails == '':
-            return '***No EMAILS TO DISPLAY***'
+            return '*** NO EMAILS TO DISPLAY! ***'
         else:
             return emails
 

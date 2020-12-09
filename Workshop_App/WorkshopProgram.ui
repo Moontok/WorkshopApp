@@ -423,7 +423,7 @@
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionIncrease_CTRL">
    <property name="text">
-    <string>Increase Font    CTRL + =</string>
+    <string>Increase Font</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+=</string>
@@ -431,7 +431,7 @@
   </action>
   <action name="actionDecrease_CTRL">
    <property name="text">
-    <string>Decrease Font    CTRL + -</string>
+    <string>Decrease Font</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+-</string>

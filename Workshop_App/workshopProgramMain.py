@@ -23,25 +23,19 @@ def main():
     ui = GuiWindow()
     ui.setupUi(MainWindow)
 
-    try:
-        ws.connectAndUpdateDatabase()    
-        ui.textOutputField.insertPlainText(welcomeText())
-    except ConnectionError:
-        ui.textOutputField.insertPlainText('Cannot connect to server...\nCheck internet connection.')
-    except TypeError:
-        ui.textOutputField.insertPlainText('Something went wrong when connecting to server...\nTry again later.')
-    except FileNotFoundError:
-        ui.textOutputField.insertPlainText('Please enter your login credentials.')
-
     # Connect buttons and menu items.
     ui.buttonGetWorkshops.clicked.connect(lambda:generateWorkshopInfo(MainWindow, ui, ws))
     ui.actionIncrease_CTRL.triggered.connect(ui.increaseFont)
     ui.actionDecrease_CTRL.triggered.connect(ui.decreaseFont)
     ui.actionUpdate_Credentials.triggered.connect(lambda:ui.credsPopupBox(ws))
-    ui.actionUpdate_Database.triggered.connect(ws.connectAndUpdateDatabase)
+    ui.actionUpdate_Database.triggered.connect(lambda:updateDatabase(MainWindow, ws, ui))    
 
     MainWindow.show()
+
+    updateDatabase(MainWindow, ws, ui) # Update database when app first launches.
+
     sys.exit(app.exec_())
+    
 
 def generateWorkshopInfo(MainWindow, ui, ws):
     '''Output the desired content based on a phrase.'''    
@@ -105,8 +99,32 @@ def generateWorkshopInfo(MainWindow, ui, ws):
     displayText.append(f'All emails for these workshops:\n\n{ws.getEmails(workshops)}')
     ui.textOutputField.clear()
     ui.textOutputField.insertPlainText(''.join(displayText))
-    
 
+
+def buttonsChecked(ui):
+    ''' Return true if any button is checked. '''
+
+    return ui.radioWsID.isChecked() or ui.radioWsStartDate.isChecked() or ui.radioPartNumbers.isChecked() or ui.radioWsName.isChecked() or ui.radioWsURLs.isChecked()
+
+def updateDatabase(MainWindow, ws, ui):
+    ''' Attempts to handle connecting to the website and database. '''
+
+    try:
+        ws.connectAndUpdateDatabase()    
+        ui.textOutputField.insertPlainText(welcomeText())
+    except ConnectionError:
+        ui.textOutputField.clear()
+        ui.textOutputField.insertPlainText(welcomeTextOffline())
+        MainWindow.repaint()
+    except TypeError:
+        ui.textOutputField.clear()
+        ui.textOutputField.insertPlainText('Something went wrong when connecting to server...\nTry again later.')
+        MainWindow.repaint()
+    except FileNotFoundError:
+        ui.textOutputField.clear()
+        ui.textOutputField.insertPlainText('Please enter your login credentials.')
+        MainWindow.repaint()
+    
 
 def welcomeText():
     '''Text that first appears in output window.'''
@@ -117,15 +135,20 @@ def welcomeText():
         'This program will allow you to seach current workshops using a phrase.',
         'Type a phrase that you would like to search in the "Phrase:" field.',
         'The phrase does not have to be case sensative.',
-        'Leave the "Search Phrase:" field blank to get all current workshops.']
+        'Leave the "Phrase:" field blank to get all current workshops.']
 
     return '\n'.join(text)
 
+def welcomeTextOffline():
+    '''Text that first appears in output window.'''
 
-def buttonsChecked(ui):
-    ''' Return true if any button is checked. '''
+    text = [
+        'Cannot connect to server...',
+        'You are in offline mode.',
+        'You can access workshops from the last time your last successful connection.',
+        'You can try to update your database when you have established an internet connection.']
 
-    return ui.radioWsID.isChecked() or ui.radioWsStartDate.isChecked() or ui.radioPartNumbers.isChecked() or ui.radioWsName.isChecked() or ui.radioWsURLs.isChecked()
+    return '\n'.join(text)
 
 
 if __name__ == '__main__':

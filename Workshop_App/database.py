@@ -1,4 +1,5 @@
-from sqlite3 import connect
+from sqlite3 import connect, OperationalError
+from os import path
 
 class WorkshopDatabase:
     '''Database to store workshop information.'''
@@ -30,11 +31,6 @@ class WorkshopDatabase:
                     school TEXT NOT NULL
                     );''')
 
-        self.c.execute('''CREATE TABLE IF NOT EXISTS creationDate (
-                    id INTEGER PRIMARY KEY,
-                    lastUpdated TEXT NOT NULL
-                    );''')
-
 
     def addWorkshop(self, wsDict):
         '''Add workshop to database.'''
@@ -53,8 +49,12 @@ class WorkshopDatabase:
         '''Print all workshops in database for testing purposes.'''
 
         workshops = []
-        for workshop in self.c.execute('SELECT * FROM workshops'):
-            workshops.append(workshop)
+
+        try:
+            for workshop in self.c.execute('SELECT * FROM workshops'):
+                workshops.append(workshop)                
+        except OperationalError:
+            print('No database located.')
 
         return workshops
 
