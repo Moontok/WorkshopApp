@@ -104,36 +104,54 @@ class Workshops():
         return participantsList
 
 
-    def getMatchingWorkshops(self, startDate=None, endDate=None):
+    def getMatchingWorkshops(self, searchWorkshopID=None, startDate=None, endDate=None):
         '''Finds all workshops that match the search criteria.'''
 
         wsDB = WorkshopDatabase()
         workshopList = []
 
         self.numberOfParticipants = 0 # Clear out number of participants
+        
+        if searchWorkshopID != None:
+            # Find workshops based on the workshopID and return when found.
+            # Will iterate over all workshops incase of duplicate workshop IDs.
+            for workshop in wsDB.getAllWorkshops():
+                if searchWorkshopID == workshop[1]:
+                    participants = []
+                    for participant in wsDB.getParticipantInfoForWorkshop(workshop[1]):
+                        participants.append(participant)
 
-        for workshop in wsDB.getAllWorkshops():
-            if search(self.searchPhrase.lower(), workshop[2].lower()) != None:
-                participants = []
-                for participant in wsDB.getParticipantInfoForWorkshop(workshop[1]):
-                    participants.append(participant)
+                    # Combine the workshop tuple with the participant list.
+                    # Adds an empty list if there are not participants.
+                    workshop = list(workshop)
+                    wokrshop = workshop.append(participants)
 
-                # Combine the workshop tuple with the participant list.
-                # Adds an empty list if there are not participants.
-                workshop = list(workshop)
-                wokrshop = workshop.append(participants)
-
-                if startDate == None or endDate == None:
                     workshopList.append(workshop)                    
                     self.numberOfParticipants += int(workshop[4])
-                else:
-                    startDateObj = date(startDate[0], startDate[1], startDate[2])
-                    endDateObj = date(endDate[0], endDate[1], endDate[2])
-                    wsStartDate = self.getStartDate(workshop)
-                    wsStartDate = date(wsStartDate[0], wsStartDate[1], wsStartDate[2])
-                    if wsStartDate >= startDateObj and wsStartDate <= endDateObj:
-                        workshopList.append(workshop)                        
+        else:
+            for workshop in wsDB.getAllWorkshops():
+
+                if search(self.searchPhrase.lower(), workshop[2].lower()) != None:
+                    participants = []
+                    for participant in wsDB.getParticipantInfoForWorkshop(workshop[1]):
+                        participants.append(participant)
+
+                    # Combine the workshop tuple with the participant list.
+                    # Adds an empty list if there are not participants.
+                    workshop = list(workshop)
+                    wokrshop = workshop.append(participants)
+
+                    if startDate == None or endDate == None:
+                        workshopList.append(workshop)                    
                         self.numberOfParticipants += int(workshop[4])
+                    else:
+                        startDateObj = date(startDate[0], startDate[1], startDate[2])
+                        endDateObj = date(endDate[0], endDate[1], endDate[2])
+                        wsStartDate = self.getStartDate(workshop)
+                        wsStartDate = date(wsStartDate[0], wsStartDate[1], wsStartDate[2])
+                        if wsStartDate >= startDateObj and wsStartDate <= endDateObj:
+                            workshopList.append(workshop)                        
+                            self.numberOfParticipants += int(workshop[4])
 
         wsDB.closeConnection()            
         self.numberOfWorkshops = len(workshopList)

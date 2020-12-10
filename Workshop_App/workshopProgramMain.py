@@ -40,61 +40,23 @@ def main():
 def generateWorkshopInfo(MainWindow, ui, ws):
     '''Output the desired content based on a phrase.'''    
 
-    ui.textOutputField.clear()
+    ui.textOutputField.clear()    
+    ws.setPhrase(ui.lineEditPhrase.text())
     
-    ui.textOutputField.insertPlainText('Collecting all workshop information...')
-    MainWindow.repaint() # Repaint Window to show text above.
-    ws.setPhrase(ui.keywordInputField.text())
-    
-    
-    if ui.radioUseDate.isChecked():
+    if ui.lineEditWorkshopID.text() != '':
+        workshops = ws.getMatchingWorkshops(searchWorkshopID=ui.lineEditWorkshopID.text())
+    elif ui.checkBoxUseDate.isChecked():
         workshops = ws.getMatchingWorkshops(startDate=ui.calendarWidget_StartDate.selectedDate().getDate(),
                                             endDate=ui.calendarWidget_EndDate.selectedDate().getDate())
     else:
         workshops = ws.getMatchingWorkshops()
 
     displayText = []
-    displayText.append(f'\nNumber of matching workshops: {ws.getNumberOfWorkshops()}\n\n')
+    displayText.append(f'Number of matching workshops: {ws.getNumberOfWorkshops()}\n\n')
     displayText.append(f'Total Signed Up: {ws.getNumberOfParticipants()}\n\n')
 
-    # Useful information when using:
-    # Workshop Entry Structure: [id, workshopID, workshopName, workshopStartDateAndTime, workshopSignedUp, workshopParticipantCapacity, workshopURL, [participantInfoList]]
-    # participantInfoList [name, email, school]
-
     if buttonsChecked(ui):
-        for workshop in workshops:
-            text = []
-            if ui.radioWsID.isChecked():
-                text.append(f"{workshop[1]}") # workshopID
-            if ui.radioWsStartDate.isChecked():
-                text.append(f"{workshop[3]}") # workshopStartDate
-            if ui.radioPartNumbers.isChecked():
-                text.append(f"{workshop[4]}/{workshop[5]}") # workshopSignedUp/workshopParticipantCapacity
-            if ui.radioWsName.isChecked():
-                text.append(f"{workshop[2]}") # workshopName
-            if ui.radioWsURLs.isChecked():
-                text.append(f"\n   Url: {workshop[6]}") # workshopURL
-
-            displayText.append(" - ".join(text))            
-            displayText.append('\n')
-
-            if ui.radioNames.isChecked() or ui.radioEmails.isChecked() or ui.radioSchool.isChecked():
-
-                displayText.append('   Contact Information:\n')
-            
-                for participantInfo in workshop[7]: # participantInfoList
-                    text = []
-                    if ui.radioNames.isChecked():
-                        text.append(f"{participantInfo[0]}")
-                    if ui.radioEmails.isChecked():
-                        text.append(f"{participantInfo[1]}")
-                    if ui.radioSchool.isChecked():
-                        text.append(f"{participantInfo[2]}")
-                    displayText.append('    + ')
-                    displayText.append(' - '.join(text))
-                    displayText.append('\n')
-            
-            displayText.append('\n')
+        displayText = setupWorkshopInformation(ui, displayText, workshops)
 
     displayText.append(f'All emails for these workshops:\n\n{ws.getEmails(workshops)}')
     ui.textOutputField.clear()
@@ -104,26 +66,69 @@ def generateWorkshopInfo(MainWindow, ui, ws):
 def buttonsChecked(ui):
     ''' Return true if any button is checked. '''
 
-    return ui.radioWsID.isChecked() or ui.radioWsStartDate.isChecked() or ui.radioPartNumbers.isChecked() or ui.radioWsName.isChecked() or ui.radioWsURLs.isChecked()
+    return ui.checkBoxWsID.isChecked() or ui.checkBoxWsStartDate.isChecked() or ui.checkBoxWsPartNumbers.isChecked() or ui.checkBoxWsName.isChecked() or ui.checkBoxWsURL.isChecked()
+
+def setupWorkshopInformation(ui, displayText, workshops):
+    '''
+    Prepare the output of the workshops based on selected information.
+
+    Useful information when using:
+    Workshop Structure: [id, workshopID, workshopName, workshopStartDateAndTime, workshopSignedUp, workshopParticipantCapacity, workshopURL, [participantInfoList]]
+    participantInfoList [name, email, school]
+    '''
+
+    for workshop in workshops:
+        text = []
+        if ui.checkBoxWsID.isChecked():
+            text.append(f"{workshop[1]}") # workshopID
+        if ui.checkBoxWsStartDate.isChecked():
+            text.append(f"{workshop[3]}") # workshopStartDate
+        if ui.checkBoxWsPartNumbers.isChecked():
+            text.append(f"{workshop[4]}/{workshop[5]}") # workshopSignedUp/workshopParticipantCapacity
+        if ui.checkBoxWsName.isChecked():
+            text.append(f"{workshop[2]}") # workshopName
+        if ui.checkBoxWsURL.isChecked():
+            text.append(f"\n   Url: {workshop[6]}") # workshopURL
+
+        displayText.append(" - ".join(text))            
+        displayText.append('\n')
+
+        if ui.checkBoxNames.isChecked() or ui.checkBoxEmails.isChecked() or ui.checkBoxSchools.isChecked():
+
+            displayText.append('   Contact Information:\n')
+        
+            for participantInfo in workshop[7]: # participantInfoList
+                text = []
+                if ui.checkBoxNames.isChecked():
+                    text.append(f"{participantInfo[0]}")
+                if ui.checkBoxEmails.isChecked():
+                    text.append(f"{participantInfo[1]}")
+                if ui.checkBoxSchools.isChecked():
+                    text.append(f"{participantInfo[2]}")
+                displayText.append('    + ')
+                displayText.append(' - '.join(text))
+                displayText.append('\n')
+        
+        displayText.append('\n')
+
+    return displayText
 
 def updateDatabase(MainWindow, ws, ui):
     ''' Attempts to handle connecting to the website and database. '''
+
+    ui.textOutputField.clear()
 
     try:
         ws.connectAndUpdateDatabase()    
         ui.textOutputField.insertPlainText(welcomeText())
     except ConnectionError:
-        ui.textOutputField.clear()
         ui.textOutputField.insertPlainText(welcomeTextOffline())
-        MainWindow.repaint()
     except TypeError:
-        ui.textOutputField.clear()
         ui.textOutputField.insertPlainText('Something went wrong when connecting to server...\nTry again later.')
-        MainWindow.repaint()
     except FileNotFoundError:
-        ui.textOutputField.clear()
         ui.textOutputField.insertPlainText('Please enter your login credentials.')
-        MainWindow.repaint()
+    
+    MainWindow.repaint()
     
 
 def welcomeText():

@@ -11,7 +11,7 @@ class WorkshopDatabase:
     def createWorkshopsTables(self):
         '''Setup workshop database.'''
 
-        self.dropTables() # Clear the tables in the database.
+        self.dropTables() # Clear the tables in the database. ##########################
 
         self.c.execute('''CREATE TABLE IF NOT EXISTS workshops (
                     id INTEGER PRIMARY KEY,
@@ -43,6 +43,12 @@ class WorkshopDatabase:
                 (wsDict['workshopID'], participant['name'], participant['email'], participant['school']))
 
         self.connection.commit()
+
+    def deleteWorkshop(self):
+        pass
+
+    def updateWorkshop(self):
+        pass
 
 
     def getAllWorkshops(self):
