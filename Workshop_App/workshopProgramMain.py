@@ -129,18 +129,17 @@ def updateDatabase(MainWindow, ws, ui):
         ui.textOutputField.insertPlainText('Please enter your login credentials.')
     
     MainWindow.repaint()
-    
 
 def welcomeText():
     '''Text that first appears in output window.'''
 
     text = [
-        'Welcome!',
+        'Your database has been updated!',
         '',
-        'This program will allow you to seach current workshops using a phrase.',
+        'This program will allow you to seach current workshops using a phrase, date range, or Session ID.',
         'Type a phrase that you would like to search in the "Phrase:" field.',
-        'The phrase does not have to be case sensative.',
-        'Leave the "Phrase:" field blank to get all current workshops.']
+        'Leave the "Phrase:" field blank to get all current workshops.',
+        'The Session ID search will take priority over phrase and date range search.']
 
     return '\n'.join(text)
 

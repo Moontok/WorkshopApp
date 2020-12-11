@@ -115,36 +115,27 @@ class Workshops():
         if searchWorkshopID != None:
             # Find workshops based on the workshopID and return when found.
             # Will iterate over all workshops incase of duplicate workshop IDs.
+            # This will take priority over phrase or date search.
             for workshop in wsDB.getAllWorkshops():
                 if searchWorkshopID == workshop[1]:
-                    participants = []
-                    for participant in wsDB.getParticipantInfoForWorkshop(workshop[1]):
-                        participants.append(participant)
-
-                    # Combine the workshop tuple with the participant list.
-                    # Adds an empty list if there are not participants.
                     workshop = list(workshop)
-                    wokrshop = workshop.append(participants)
+                    wokrshop = workshop.append(self.makeParticipantList(wsDB, workshop))
 
                     workshopList.append(workshop)                    
                     self.numberOfParticipants += int(workshop[4])
         else:
+            # Find workshops based on a search phrase.
             for workshop in wsDB.getAllWorkshops():
-
                 if search(self.searchPhrase.lower(), workshop[2].lower()) != None:
-                    participants = []
-                    for participant in wsDB.getParticipantInfoForWorkshop(workshop[1]):
-                        participants.append(participant)
-
-                    # Combine the workshop tuple with the participant list.
-                    # Adds an empty list if there are not participants.
                     workshop = list(workshop)
-                    wokrshop = workshop.append(participants)
+                    wokrshop = workshop.append(self.makeParticipantList(wsDB, workshop))
 
                     if startDate == None or endDate == None:
+                        # Search without date range.
                         workshopList.append(workshop)                    
                         self.numberOfParticipants += int(workshop[4])
                     else:
+                        # Search with a date range.
                         startDateObj = date(startDate[0], startDate[1], startDate[2])
                         endDateObj = date(endDate[0], endDate[1], endDate[2])
                         wsStartDate = self.getStartDate(workshop)
@@ -159,6 +150,16 @@ class Workshops():
         return workshopList
 
 
+    def makeParticipantList(self, wsDB, workshop):
+        ''' Return a list of all participants for selected workshop. '''
+
+        participants = []
+        for participant in wsDB.getParticipantInfoForWorkshop(workshop[1]):
+            participants.append(participant)
+
+        return participants
+
+    
     def getNumberOfWorkshops(self):
         '''Returns the total number of workshops that match phrase.'''
 

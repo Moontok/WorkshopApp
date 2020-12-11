@@ -33,7 +33,7 @@ class WorkshopDatabase:
 
 
     def addWorkshop(self, wsDict):
-        '''Add workshop to database.'''
+        '''Add a workshop to database.'''
 
         self.c.execute('INSERT INTO workshops (workshopID, workshopName, workshopStartDateAndTime, workshopSignedUp, workshopParticipantCapacity, workshopURL) VALUES (?,?,?,?,?,?)',
             (wsDict['workshopID'], wsDict['workshopName'], wsDict['workshopStartDateAndTime'], wsDict['workshopSignedUp'], wsDict['workshopParticipantCapacity'], wsDict['workshopURL']))
@@ -43,12 +43,6 @@ class WorkshopDatabase:
                 (wsDict['workshopID'], participant['name'], participant['email'], participant['school']))
 
         self.connection.commit()
-
-    def deleteWorkshop(self):
-        pass
-
-    def updateWorkshop(self):
-        pass
 
 
     def getAllWorkshops(self):
