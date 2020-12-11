@@ -213,9 +213,6 @@ class Workshops():
     def storeUserInfo(self):
         '''Store the user information for later use in userInfo.txt'''
 
-        dirPath = path.dirname(path.realpath(__file__))
-        chdir(dirPath)
-
         with open('userInfo.txt', 'w') as f:
             f.write(f'{self.userName}\n')
             f.write(self.userPassword)
@@ -223,9 +220,6 @@ class Workshops():
 
     def getUserInfo(self):
         '''Retreive the user from userInfo.txt file if it exists.'''
-
-        dirPath = path.dirname(path.realpath(__file__))
-        chdir(dirPath)
         
         with open('userInfo.txt', 'r') as f:
             self.userName = f.readline().strip()
@@ -234,9 +228,6 @@ class Workshops():
 
     def getURLInfo(self):
         '''Load and get the Url information from the URLInfo.json file.'''
-
-        dirPath = path.dirname(path.realpath(__file__))
-        chdir(dirPath)
         
         with open('URLInfo.json', 'r') as f:
             return load(f)
