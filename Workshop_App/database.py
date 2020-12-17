@@ -5,7 +5,13 @@ class WorkshopDatabase:
     '''Database to store workshop information.'''
 
     def __init__(self):
-        self.connection = connect('workshops.db')
+        
+        # self.connection = connect('workshops.db') # this should also get stored next to the json file. 
+        from pathlib import Path
+        config_path = str(Path.home()) + '/workshopapp_config' # it's be better to have this pulled from the init rather than re-creating it. 
+
+        self.connection = connect(config_path + '/workshops.db')
+
         self.c = self.connection.cursor()
 
     def createWorkshopsTables(self):

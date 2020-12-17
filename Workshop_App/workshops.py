@@ -19,14 +19,14 @@ class Workshops():
         self.searchPhrase = ''
         self.numberOfWorkshops = 0
         self.numberOfParticipants = 0
-        self.userName = ''
-        self.userPassword = ''
         self.urlInfo = self.getURLInfo()
-
+        self.userName = self.urlInfo.get('username','')
+        self.userPassword = self.urlInfo.get('password','')
+        
     def connectAndUpdateDatabase(self):
         '''Connects to the escWorks webpage, logins, gather workshops, and add them to the database.'''
         
-        self.getUserInfo()         
+        # self.getUserInfo()         
 
         login_data = {
             'ctl00$mainBody$txtUserName': self.userName,
@@ -218,19 +218,37 @@ class Workshops():
             f.write(self.userPassword)
 
 
-    def getUserInfo(self):
-        '''Retreive the user from userInfo.txt file if it exists.'''
-        
-        with open('userInfo.txt', 'r') as f:
-            self.userName = f.readline().strip()
-            self.userPassword = f.readline().strip()
+    # no longer required
+    # def getUserInfo(self): 
+    #     '''Retreive the user from userInfo.txt file if it exists.'''
+    #     return
+    #     with open('userInfo.txt', 'r') as f:
+    #         self.userName = f.readline().strip()
+    #         self.userPassword = f.readline().strip()
 
 
     def getURLInfo(self):
         '''Load and get the Url information from the URLInfo.json file.'''
-        
-        with open('URLInfo.json', 'r') as f:
-            return load(f)
+        from pathlib import Path
+        from json import JSONDecodeError
+        home_dir = str(Path.home())
+        config_dir_name = 'workshopapp_config'
+        self.config_dir = f'{home_dir}/{config_dir_name}'
+
+        try:
+            with open(self.config_dir + '/URLInfo.json', 'r') as f:
+                return load(f)
+        except FileNotFoundError as e:
+            # p = Path(self.config_dir)
+            # p.mkdir(config_dir_name, exist_ok=True) # create the dir 
+            print(e)
+            exit()
+        except JSONDecodeError as e:
+            print(e)
+            exit()
+        except BaseException as e:
+            print(e)
+            exit()
 
 if __name__ == '__main__':
     print('This is a module...')
