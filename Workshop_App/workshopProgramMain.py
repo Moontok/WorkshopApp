@@ -16,12 +16,12 @@ from guiWindow import GuiWindow
 def main():
     '''Main'''
 
-    ws = Workshops()    
-
     app = QApplication(sys.argv)
     MainWindow = QMainWindow()
     ui = GuiWindow()
     ui.setupUi(MainWindow)
+
+    ws = Workshops()        
 
     # Connect buttons and menu items.
     ui.buttonGetWorkshops.clicked.connect(lambda:generateWorkshopInfo(MainWindow, ui, ws))
@@ -29,10 +29,10 @@ def main():
     ui.actionDecrease_CTRL.triggered.connect(ui.decreaseFont)
     ui.actionUpdate_Credentials.triggered.connect(lambda:ui.credsPopupBox(ws))
     ui.actionUpdate_Database.triggered.connect(lambda:updateDatabase(MainWindow, ws, ui))    
+    
+    updateDatabase(MainWindow, ws, ui) # Update database when app first launches.   
 
     MainWindow.show()
-
-    updateDatabase(MainWindow, ws, ui) # Update database when app first launches.
 
     sys.exit(app.exec_())
     
@@ -125,8 +125,11 @@ def updateDatabase(MainWindow, ws, ui):
         ui.textOutputField.insertPlainText(welcomeTextOffline())
     except TypeError:
         ui.textOutputField.insertPlainText('Something went wrong when connecting to server...\nTry again later.')
-    except FileNotFoundError:
-        ui.textOutputField.insertPlainText('Please enter your login credentials.')
+    except FileNotFoundError as e:
+        if str(e).split("'")[-2] == 'userInfo.txt':
+            ui.textOutputField.insertPlainText('Please enter your login credentials.')
+        elif str(e).split("'")[-2] == 'URLInfo.json':
+            ui.textOutputField.insertPlainText('Missing "URLInfo.json". Cannot update database.')
     
     MainWindow.repaint()
 

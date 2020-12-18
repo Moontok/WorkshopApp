@@ -7,7 +7,7 @@ for each workshop from the workshop url.
 from requests import Session
 from re import search
 from bs4 import BeautifulSoup
-from os import path, chdir
+from pathlib import Path
 from json import load
 from datetime import date
 from database import WorkshopDatabase
@@ -21,12 +21,14 @@ class Workshops():
         self.numberOfParticipants = 0
         self.userName = ''
         self.userPassword = ''
-        self.urlInfo = self.getURLInfo()
+
+
 
     def connectAndUpdateDatabase(self):
         '''Connects to the escWorks webpage, logins, gather workshops, and add them to the database.'''
         
-        self.getUserInfo()         
+        self.getUserInfo()
+        urlInfo = self.getURLInfo()        
 
         login_data = {
             'ctl00$mainBody$txtUserName': self.userName,
@@ -35,7 +37,7 @@ class Workshops():
             }
 
         with Session() as s:
-            url = self.urlInfo['signin']
+            url = urlInfo['signin']
 
             pageInfo = s.get(url)
             bsObj = BeautifulSoup(pageInfo.content, 'html.parser')
@@ -44,7 +46,7 @@ class Workshops():
             login_data['__VIEWSTATE'] = bsObj.find('input', attrs={'name':'__VIEWSTATE'})['value']
 
             s.post(url, data=login_data)
-            html = s.get(self.urlInfo['targetInfoURL'])
+            html = s.get(urlInfo['targetInfoURL'])
             bsObj = BeautifulSoup(html.content, 'html.parser')
 
             # Collect all workshops that are listed on the webpage.
@@ -65,21 +67,21 @@ class Workshops():
                 workshopDict['workshopStartDateAndTime'] = workshopInfo[0].contents[3]
                 workshopDict['workshopSignedUp'] = workshopInfo[1].contents[0].split(' / ')[0]
                 workshopDict['workshopParticipantCapacity'] = workshopInfo[1].contents[0].split(' / ')[1]
-                workshopDict['workshopURL'] = f'{self.urlInfo["urlBase"]}{workshopDict["workshopID"]}'
-                workshopDict['workshopParticipantInfoList'] = self.getParticipantInfo(s, workshopDict['workshopID'])
+                workshopDict['workshopURL'] = f'{urlInfo["urlBase"]}{workshopDict["workshopID"]}'
+                workshopDict['workshopParticipantInfoList'] = self.getParticipantInfo(s, workshopDict['workshopID'], urlInfo)
 
                 wsDB.addWorkshop(workshopDict)
 
             wsDB.closeConnection()
 
 
-    def getParticipantInfo(self, session, ID):
+    def getParticipantInfo(self, session, ID, urlInfo):
         '''
         Returns a list of a dictionary with each participant's name, email, and school.
         Returns an empty list if no participants were found.
         '''
 
-        url = f'{self.urlInfo["partInfoBaseURL"]}{ID}'
+        url = f'{urlInfo["partInfoBaseURL"]}{ID}'
         html = session.get(url)
 
         bsObj = BeautifulSoup(html.content, 'html.parser')
