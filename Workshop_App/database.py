@@ -1,5 +1,4 @@
 from sqlite3 import connect, OperationalError
-from os import path
 
 class WorkshopDatabase:
     '''Database to store workshop information.'''

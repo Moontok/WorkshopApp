@@ -5,9 +5,10 @@ for each workshop from the workshop url.
 '''
 
 from requests import Session
+from os import chdir
+from pathlib import Path
 from re import search
 from bs4 import BeautifulSoup
-from pathlib import Path
 from json import load
 from datetime import date
 from database import WorkshopDatabase
@@ -21,6 +22,7 @@ class Workshops():
         self.numberOfParticipants = 0
         self.userName = ''
         self.userPassword = ''
+        self.setWorkingDirectory('Workshop_App')
 
 
 
@@ -233,6 +235,21 @@ class Workshops():
         
         with open('URLInfo.json', 'r') as f:
             return load(f)
+
+
+    def setWorkingDirectory(self, targetDir):
+        ''' Set the current directory to the <targetDir> dir if not already. '''
+
+        path = Path(__file__)
+
+        if path.parent.name != targetDir:
+            parentName = path.parent.name
+            while parentName != targetDir and path.name != parentName:
+                path = path.parent
+                print(path)
+
+            chdir(path)
+
 
 if __name__ == '__main__':
     print('This is a module...')
