@@ -246,9 +246,9 @@ class Workshops():
             parentName = path.parent.name
             while parentName != targetDir and path.name != parentName:
                 path = path.parent
-                print(path)
-
             chdir(path)
+        else:
+            chdir(path.parent)
 
 
 if __name__ == '__main__':
