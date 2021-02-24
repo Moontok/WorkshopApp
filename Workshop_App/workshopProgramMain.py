@@ -8,9 +8,10 @@ it into a searchable database.
 
 import sys
 from requests.exceptions import ConnectionError
-from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox
+from PyQt5.QtWidgets import QApplication, QMainWindow
 from workshops import Workshops
 from guiWindow import GuiWindow
+from splashScreen import SplashScreen
 
 
 def main():
@@ -21,24 +22,25 @@ def main():
     ui = GuiWindow()
     ui.setupUi(MainWindow)
 
+    splash = SplashScreen()  
+
     ws = Workshops()        
 
     # Connect buttons and menu items.
-    ui.buttonGetWorkshops.clicked.connect(lambda:generateWorkshopInfo(MainWindow, ui, ws))
+    ui.buttonGetWorkshops.clicked.connect(lambda:generateWorkshopInfo(ui, ws))
     ui.actionIncrease_CTRL.triggered.connect(ui.increaseFont)
     ui.actionDecrease_CTRL.triggered.connect(ui.decreaseFont)
     ui.actionUpdate_Credentials.triggered.connect(lambda:ui.credsPopupBox(ws))
     ui.actionUpdate_Database.triggered.connect(lambda:updateDatabase(MainWindow, ws, ui))    
     
-    updateDatabase(MainWindow, ws, ui) # Update database when app first launches.   
-
+    updateDatabase(MainWindow, ws, ui) # Update database when app first launches.
+    splash.close()
     MainWindow.show()
-
     sys.exit(app.exec_())
     
 
-def generateWorkshopInfo(MainWindow, ui, ws):
-    '''Output the desired content based on a phrase.'''    
+def generateWorkshopInfo(ui, ws):
+    '''Output the desired content based on a phrase.'''  
 
     ui.textOutputField.clear()    
     ws.setPhrase(ui.lineEditPhrase.text())
@@ -115,7 +117,7 @@ def setupWorkshopInformation(ui, displayText, workshops):
 
 def updateDatabase(MainWindow, ws, ui):
     ''' Attempts to handle connecting to the website and database. '''
-
+    
     ui.textOutputField.clear()
 
     try:
