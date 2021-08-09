@@ -1,16 +1,17 @@
 from sqlite3 import connect, OperationalError
 
 class WorkshopDatabase:
-    '''Database to store workshop information.'''
+    '''Database to store workshop information for quicker access during use.'''
 
     def __init__(self):
         self.connection = connect('workshops.db')
         self.c = self.connection.cursor()
 
-    def createWorkshopsTables(self):
+    def createWorkshopsTables(self) -> None:
         '''Setup workshop database.'''
 
-        self.dropTables() # Clear the tables in the database. ##########################
+        # Clear the tables in the database.
+        self.dropTables()
 
         self.c.execute('''CREATE TABLE IF NOT EXISTS workshops (
                     id INTEGER PRIMARY KEY,
@@ -31,7 +32,7 @@ class WorkshopDatabase:
                     );''')
 
 
-    def addWorkshop(self, wsDict):
+    def addWorkshop(self, wsDict: dict) -> None:
         '''Add a workshop to database.'''
 
         self.c.execute('INSERT INTO workshops (workshopID, workshopName, workshopStartDateAndTime, workshopSignedUp, workshopParticipantCapacity, workshopURL) VALUES (?,?,?,?,?,?)',
@@ -44,10 +45,10 @@ class WorkshopDatabase:
         self.connection.commit()
 
 
-    def getAllWorkshops(self):
-        '''Print all workshops in database for testing purposes.'''
+    def getAllWorkshops(self) -> list:
+        '''Return all workshops in database for testing purposes.'''
 
-        workshops = []
+        workshops: list = []
 
         try:
             for workshop in self.c.execute('SELECT * FROM workshops'):

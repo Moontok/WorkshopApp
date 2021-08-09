@@ -26,7 +26,7 @@ class Workshops():
 
 
 
-    def connectAndUpdateDatabase(self):
+    def connectAndUpdateDatabase(self) -> None:
         '''Connects to the escWorks webpage, logins, gather workshops, and add them to the database.'''
         
         self.getUserInfo()
@@ -77,7 +77,7 @@ class Workshops():
             wsDB.closeConnection()
 
 
-    def getParticipantInfo(self, session, ID, urlInfo):
+    def getParticipantInfo(self, session, ID, urlInfo) -> list:
         '''
         Returns a list of a dictionary with each participant's name, email, and school.
         Returns an empty list if no participants were found.
@@ -108,7 +108,7 @@ class Workshops():
         return participantsList
 
 
-    def getMatchingWorkshops(self, searchWorkshopID=None, startDate=None, endDate=None):
+    def getMatchingWorkshops(self, searchWorkshopID=None, startDate=None, endDate=None) -> None:
         '''Finds all workshops that match the search criteria.'''
 
         wsDB = WorkshopDatabase()
@@ -154,7 +154,7 @@ class Workshops():
         return workshopList
 
 
-    def makeParticipantList(self, wsDB, workshop):
+    def makeParticipantList(self, wsDB, workshop) -> list:
         ''' Return a list of all participants for selected workshop. '''
 
         participants = []
@@ -164,18 +164,18 @@ class Workshops():
         return participants
 
     
-    def getNumberOfWorkshops(self):
+    def getNumberOfWorkshops(self) -> int:
         '''Returns the total number of workshops that match phrase.'''
 
         return self.numberOfWorkshops
 
-    def getNumberOfParticipants(self):
+    def getNumberOfParticipants(self) -> int:
         '''Returns the total number of participants for matching workshops.'''
 
         return self.numberOfParticipants
 
 
-    def getEmails(self, workshops):
+    def getEmails(self, workshops) -> str:
         '''Returns a string of emails in a copy and past format for emailing participants.'''
 
         emailList = []
@@ -194,7 +194,7 @@ class Workshops():
         else:
             return emails
 
-    def getStartDate(self, workshop):
+    def getStartDate(self, workshop) -> tuple:
         '''
         Returns a tuple of integers for the start date of the provided workshop.
         Format: (year, month, day)
@@ -204,7 +204,7 @@ class Workshops():
         workshop = [int(x) for x in workshop[0].split('/')]
         return (workshop[2], workshop[0], workshop[1])
 
-    def setPhrase(self, phrase):
+    def setPhrase(self, phrase) -> None:
         '''Sets the phrase to be used in the search process.'''
         
         replaceSymbols = '[]\\.^$*+{}|()'
@@ -214,7 +214,7 @@ class Workshops():
         self.searchPhrase = phrase
 
 
-    def storeUserInfo(self):
+    def storeUserInfo(self) -> None:
         '''Store the user information for later use in userInfo.txt'''
 
         with open('userInfo.txt', 'w') as f:
@@ -222,7 +222,7 @@ class Workshops():
             f.write(self.userPassword)
 
 
-    def getUserInfo(self):
+    def getUserInfo(self) -> None:
         '''Retreive the user from userInfo.txt file if it exists.'''
         
         with open('userInfo.txt', 'r') as f:
@@ -237,7 +237,7 @@ class Workshops():
             return load(f)
 
 
-    def setWorkingDirectory(self, targetDir):
+    def setWorkingDirectory(self, targetDir) -> None:
         ''' Set the current directory to the <targetDir> dir if not already. '''
 
         path = Path(__file__)

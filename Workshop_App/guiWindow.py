@@ -11,8 +11,7 @@ from workshopGUI import Ui_MainWindow
 
 
 class GuiWindow(Ui_MainWindow):
-    '''
-    Class extension for Ui_MainWindow so original class can be udpated in QTdesigner.
+    ''' Class extension for Ui_MainWindow so original class can be udpated in QTdesigner.
     Extended functionallity is added here.
     '''
 
@@ -23,7 +22,7 @@ class GuiWindow(Ui_MainWindow):
         self.largestFontSize = 52
         self.textOutputField.setReadOnly(True)
 
-    def increaseFont(self):
+    def increaseFont(self) -> None:
         '''Increase output font if below size 52.'''
 
         if self.fontSize < self.largestFontSize:
@@ -33,7 +32,7 @@ class GuiWindow(Ui_MainWindow):
             self.textOutputField.setText(text)
 
     
-    def decreaseFont(self):
+    def decreaseFont(self) -> None:
         '''Decrease output font if above size 8.'''
 
         if self.fontSize > self.smallestFontSize:
@@ -43,7 +42,7 @@ class GuiWindow(Ui_MainWindow):
             self.textOutputField.setText(text)
 
 
-    def credsPopupBox(self, ws):
+    def credsPopupBox(self, ws) -> None:
         ''' Open a custom dialog box to update username and password.'''
 
         LoginDialog = QDialog()
@@ -63,7 +62,7 @@ class GuiWindow(Ui_MainWindow):
             self.changeCredsSuccessful(False)
 
 
-    def changeCredsSuccessful(self, success):
+    def changeCredsSuccessful(self, success) -> None:
         '''Pops-up message if successful update of user information or not.'''
 
         msg = QMessageBox()

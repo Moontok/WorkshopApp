@@ -15,7 +15,7 @@ class SplashScreen():
         loop.exec_()
 
 
-    def close(self):
+    def close(self) -> None:
         self.splash.close()
 
 if __name__ == '__main__':

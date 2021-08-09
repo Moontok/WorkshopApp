@@ -14,7 +14,7 @@ from guiWindow import GuiWindow
 from splashScreen import SplashScreen
 
 
-def main():
+def main() -> None:
     '''Main'''
 
     app = QApplication(sys.argv)
@@ -33,13 +33,14 @@ def main():
     ui.actionUpdate_Credentials.triggered.connect(lambda:ui.credsPopupBox(ws))
     ui.actionUpdate_Database.triggered.connect(lambda:updateDatabase(MainWindow, ws, ui))    
     
-    updateDatabase(MainWindow, ws, ui) # Update database when app first launches.
+    # Peform an initial update attempt of the database when the software is launched
+    updateDatabase(MainWindow, ws, ui)
     splash.close()
     MainWindow.show()
     sys.exit(app.exec_())
     
 
-def generateWorkshopInfo(ui, ws):
+def generateWorkshopInfo(ui, ws) -> None:
     '''Output the desired content based on a phrase.'''  
 
     ui.textOutputField.clear()    
@@ -65,12 +66,12 @@ def generateWorkshopInfo(ui, ws):
     ui.textOutputField.insertPlainText(''.join(displayText))
 
 
-def buttonsChecked(ui):
+def buttonsChecked(ui) -> bool:
     ''' Return true if any button is checked. '''
 
     return ui.checkBoxWsID.isChecked() or ui.checkBoxWsStartDate.isChecked() or ui.checkBoxWsPartNumbers.isChecked() or ui.checkBoxWsName.isChecked() or ui.checkBoxWsURL.isChecked()
 
-def setupWorkshopInformation(ui, displayText, workshops):
+def setupWorkshopInformation(ui, displayText, workshops) -> str:
     '''
     Prepare the output of the workshops based on selected information.
 
@@ -115,7 +116,7 @@ def setupWorkshopInformation(ui, displayText, workshops):
 
     return displayText
 
-def updateDatabase(MainWindow, ws, ui):
+def updateDatabase(MainWindow, ws, ui) -> None:
     ''' Attempts to handle connecting to the website and database. '''
     
     ui.textOutputField.clear()
@@ -135,7 +136,7 @@ def updateDatabase(MainWindow, ws, ui):
     
     MainWindow.repaint()
 
-def welcomeText():
+def welcomeText() -> str:
     '''Text that first appears in output window.'''
 
     text = [
@@ -148,7 +149,7 @@ def welcomeText():
 
     return '\n'.join(text)
 
-def welcomeTextOffline():
+def welcomeTextOffline() -> str:
     '''Text that first appears in output window.'''
 
     text = [
