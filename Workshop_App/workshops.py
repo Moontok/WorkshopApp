@@ -25,7 +25,6 @@ class Workshops():
         self.setWorkingDirectory('Workshop_App')
 
 
-
     def connectAndUpdateDatabase(self) -> None:
         '''Connects to the escWorks webpage, logins, gather workshops, and add them to the database.'''
         
