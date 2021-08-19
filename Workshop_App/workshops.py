@@ -4,11 +4,10 @@ This has the Workshops class that is used to pull and format the information
 for each workshop from the workshop url.
 '''
 
-from requests import Session
+from requests_html import HTMLSession
 from os import chdir
 from pathlib import Path
 from re import search
-from bs4 import BeautifulSoup
 from json import load
 from datetime import date
 from database import WorkshopDatabase
@@ -37,25 +36,26 @@ class Workshops():
             'ctl00$mainBody$btnSubmit': 'Submit'
             }
 
-        with Session() as s:
+        with HTMLSession() as s:
             url = urlInfo['signin']
 
-            pageInfo = s.get(url)
-            bsObj = BeautifulSoup(pageInfo.content, 'html.parser')
+            loginPageContent = s.get(url)
 
-            login_data['__EVENTVALIDATION'] = bsObj.find('input', attrs={'name':'__EVENTVALIDATION'})['value']     
-            login_data['__VIEWSTATE'] = bsObj.find('input', attrs={'name':'__VIEWSTATE'})['value']
+            eventMatch = loginPageContent.html.find('input#__EVENTVALIDATION', first=True)
+            login_data['__EVENTVALIDATION'] = eventMatch.attrs['value']
+            viewStateMatch = loginPageContent.html.find('input#__VIEWSTATE', first=True)
+            login_data['__VIEWSTATE'] = viewStateMatch.attrs['value']
 
             s.post(url, data=login_data)
-            html = s.get(urlInfo['targetInfoURL'])
-            bsObj = BeautifulSoup(html.content, 'html.parser')
+            instructorPageContent = s.get(urlInfo['targetInfoURL'])
+            # bsObj = BeautifulSoup(html.content, 'html.parser')
 
             # Collect all workshops that are listed on the webpage.
-            workshopsContent = bsObj.find('table', {'class':'mainBody'}).findAll(('tr'))    
-
-            # Convert to list for slicing and remove table headers, blank lines, and non-workshop related information.
-            # Specific to the layout of the content scraped.
-            workshopsContent = [list(x)[3:-1:2] for x in workshopsContent[1:]]
+            workshopsContent = instructorPageContent.html.find('table.mainBody tr')
+            # Convert the workshopContent into a list of lists skipping the first row of the table.
+            # The content of each element is as follows:
+            # ['Workshop Name', 'Workshop Date and Time', 'Workshop Enrollment']
+            workshopsContent = [x.text.split('\n') for x in list(workshopsContent)[1:]]
             
             wsDB = WorkshopDatabase()
             wsDB.createWorkshopsTables()
@@ -63,11 +63,11 @@ class Workshops():
             for workshopInfo in workshopsContent:
                 workshopDict = {}
 
-                workshopDict['workshopID'] = workshopInfo[0].contents[0].get_text()[:6]
-                workshopDict['workshopName'] = workshopInfo[0].contents[0].get_text()[9:]
-                workshopDict['workshopStartDateAndTime'] = workshopInfo[0].contents[3]
-                workshopDict['workshopSignedUp'] = workshopInfo[1].contents[0].split(' / ')[0]
-                workshopDict['workshopParticipantCapacity'] = workshopInfo[1].contents[0].split(' / ')[1]
+                workshopDict['workshopID'] = workshopInfo[0][:6]
+                workshopDict['workshopName'] = workshopInfo[0][9:]
+                workshopDict['workshopStartDateAndTime'] = workshopInfo[1]
+                workshopDict['workshopSignedUp'] = workshopInfo[2].split(' / ')[0]
+                workshopDict['workshopParticipantCapacity'] = workshopInfo[2].split(' / ')[1]
                 workshopDict['workshopURL'] = f'{urlInfo["urlBase"]}{workshopDict["workshopID"]}'
                 workshopDict['workshopParticipantInfoList'] = self.getParticipantInfo(s, workshopDict['workshopID'], urlInfo)
 
@@ -83,26 +83,21 @@ class Workshops():
         '''
 
         url = f'{urlInfo["partInfoBaseURL"]}{ID}'
-        html = session.get(url)
+        pageContent = session.get(url)
+        content = pageContent.html.find('div#RadGrid1_GridData tbody tr')
 
-        bsObj = BeautifulSoup(html.content, 'html.parser')
-        content = bsObj.find('table', {'id':'RadGrid1_ctl00'}).tbody.findAll('tr')
+        # Convert the content into a list omitting the first element in each.
+        content = [x.text.split('\n')[1:] for x in list(content)]
 
         participantsList = []
 
-        for possibleParticipant in content:        
-            participant = {}
-            try:
-                name = possibleParticipant.find('td').next_sibling
-                email = name.next_sibling
-                school = email.next_sibling
-
-                participant['name'] = name.get_text()
-                participant['email'] = email.get_text()
-                participant['school'] = school.get_text()
+        for item in content:
+            if len(item) > 0:    
+                participant = {}
+                participant['name'] = item[0]
+                participant['email'] = item[1]
+                participant['school'] = item[2]
                 participantsList.append(participant)
-            except AttributeError:
-                continue
 
         return participantsList
 
