@@ -14,7 +14,7 @@
    <string>Workshop App</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="Resources/graphics.qrc">
+   <iconset>
     <normaloff>:/Logo/2018_CS_Logo_Square.png</normaloff>:/Logo/2018_CS_Logo_Square.png</iconset>
   </property>
   <property name="styleSheet">
@@ -364,7 +364,7 @@
                 <string/>
                </property>
                <property name="pixmap">
-                <pixmap resource="Resources/graphics.qrc">:/Logo/2018_CS_Logo_Square.png</pixmap>
+                <pixmap>logo.png</pixmap>
                </property>
                <property name="scaledContents">
                 <bool>true</bool>
@@ -391,7 +391,7 @@
                 <x>0</x>
                 <y>0</y>
                 <width>1092</width>
-                <height>116</height>
+                <height>119</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -417,7 +417,7 @@
      <x>0</x>
      <y>0</y>
      <width>1132</width>
-     <height>20</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuActions">

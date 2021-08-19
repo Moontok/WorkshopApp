@@ -149,6 +149,8 @@ class Workshops:
                         workshopList.append(workshop)
                         self.numberOfParticipants += int(workshop[4])
 
+        return workshopList
+
     def find_with_workshop_ID(self, searchWorkshopID, wsDB, workshopList) -> list:
         """Find workshops based on the workshopID and return when found.
         Will iterate over all workshops incase of duplicate workshop IDs.
