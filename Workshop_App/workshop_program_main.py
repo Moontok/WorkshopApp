@@ -1,78 +1,76 @@
-""" 
-Workshop information gatherer.
+# Workshop information gatherer.
 
-This program gathers information about our teams workshops by
-gathering the information directly from the website and storing
-it into a searchable database.
-"""
+# This program gathers information about our teams workshops by
+# gathering the information directly from the website and storing
+# it into a searchable database.
+
 
 import sys
+#from workshop_gui import MainWindow
 from requests.exceptions import ConnectionError
 from PyQt5.QtWidgets import QApplication, QMainWindow
 from workshops import Workshops
-from guiWindow import GuiWindow
-from splashScreen import SplashScreen
+from gui_window import GuiWindow
+from splash_screen import SplashScreen
 
 
 def main() -> None:
     """Main"""
 
-    app = QApplication(sys.argv)
-    MainWindow = QMainWindow()
-    ui = GuiWindow()
-    ui.setupUi(MainWindow)
+    app: QApplication = QApplication(sys.argv)
+    main_window: QMainWindow = QMainWindow()
+    ui: GuiWindow = GuiWindow()
+    ui.setup_ui(main_window)
 
     splash = SplashScreen()
 
     ws = Workshops()
 
     # Connect buttons and menu items.
-    ui.buttonGetWorkshops.clicked.connect(lambda: generateWorkshopInfo(ui, ws))
-    ui.actionIncrease_CTRL.triggered.connect(ui.increaseFont)
-    ui.actionDecrease_CTRL.triggered.connect(ui.decreaseFont)
-    ui.actionUpdate_Credentials.triggered.connect(lambda: ui.credsPopupBox(ws))
-    ui.actionUpdate_Database.triggered.connect(
-        lambda: updateDatabase(MainWindow, ws, ui)
-    )
+    ui.buttonGetWorkshops.clicked.connect(lambda: generate_workshop_info(ui, ws))
+    ui.actionIncrease_CTRL.triggered.connect(ui.increase_font)
+    ui.actionDecrease_CTRL.triggered.connect(ui.decrease_font)
+    ui.actionUpdate_Credentials.triggered.connect(lambda: ui.creds_popup_box(ws))
+    ui.actionUpdate_Database.triggered.connect( lambda: update_database(main_window, ws, ui))
 
     # Peform an initial update attempt of the database when the software is launched
-    updateDatabase(MainWindow, ws, ui)
+    update_database(main_window, ws, ui)
     splash.close()
-    MainWindow.show()
+    main_window.show()
     sys.exit(app.exec_())
 
 
-def generateWorkshopInfo(ui, ws) -> None:
+def generate_workshop_info(ui: GuiWindow, ws: Workshops) -> None:
     """Output the desired content based on a phrase."""
 
     ui.textOutputField.clear()
-    ws.setPhrase(ui.lineEditPhrase.text())
+    ws.set_phrase(ui.lineEditPhrase.text())
 
     if ui.lineEditWorkshopID.text() != "":
-        workshops = ws.getMatchingWorkshops(
-            searchWorkshopID=ui.lineEditWorkshopID.text()
+        workshops: list = ws.get_matching_workshops(
+            search_workshop_id=ui.lineEditWorkshopID.text()
         )
     elif ui.checkBoxUseDate.isChecked():
-        workshops = ws.getMatchingWorkshops(
-            startDate=ui.calendarWidget_StartDate.selectedDate().getDate(),
-            endDate=ui.calendarWidget_EndDate.selectedDate().getDate(),
+        workshops: list = ws.get_matching_workshops(
+            start_date=ui.calendarWidget_StartDate.selectedDate().getDate(),
+            end_date=ui.calendarWidget_EndDate.selectedDate().getDate(),
         )
     else:
-        workshops = ws.getMatchingWorkshops()
+        workshops: list = ws.get_matching_workshops()
 
-    displayText = []
-    displayText.append(f"Number of matching workshops: {ws.getNumberOfWorkshops()}\n\n")
-    displayText.append(f"Total Signed Up: {ws.getNumberOfParticipants()}\n\n")
+    display_text: list = []
+    display_text.append(f"Number of matching workshops: {ws.get_number_of_workshops()}\n\n")
+    display_text.append(f"Total Signed Up: {ws.get_number_of_participants()}\n\n")
 
-    if buttonsChecked(ui):
-        displayText = setupWorkshopInformation(ui, displayText, workshops)
+    if buttons_checked(ui):
+        display_text = setupWorkshopInformation(ui, display_text, workshops)
 
-    displayText.append(f"All emails for these workshops:\n\n{ws.getEmails(workshops)}")
+    display_text.append(f"All emails for these workshops:\n\n{ws.get_emails(workshops)}")
     ui.textOutputField.clear()
-    ui.textOutputField.insertPlainText("".join(displayText))
+    ui.textOutputField.insertPlainText("".join(display_text))
 
 
-def buttonsChecked(ui) -> bool:
+def buttons_checked(ui: GuiWindow) -> bool:
     """Return true if any button is checked."""
 
     return (
@@ -84,7 +82,7 @@ def buttonsChecked(ui) -> bool:
     )
 
 
-def setupWorkshopInformation(ui, displayText, workshops) -> str:
+def setupWorkshopInformation(ui: GuiWindow, display_text: str, workshops: list) -> str:
     """
     Prepare the output of the workshops based on selected information.
 
@@ -94,7 +92,7 @@ def setupWorkshopInformation(ui, displayText, workshops) -> str:
     """
 
     for workshop in workshops:
-        text = []
+        text: list = []
         if ui.checkBoxWsID.isChecked():
             text.append(f"{workshop[1]}")  # workshopID
         if ui.checkBoxWsStartDate.isChecked():
@@ -108,8 +106,8 @@ def setupWorkshopInformation(ui, displayText, workshops) -> str:
         if ui.checkBoxWsURL.isChecked():
             text.append(f"\n   Url: {workshop[6]}")  # workshopURL
 
-        displayText.append(" - ".join(text))
-        displayText.append("\n")
+        display_text.append(" - ".join(text))
+        display_text.append("\n")
 
         if (
             ui.checkBoxNames.isChecked()
@@ -117,35 +115,35 @@ def setupWorkshopInformation(ui, displayText, workshops) -> str:
             or ui.checkBoxSchools.isChecked()
         ):
 
-            displayText.append("   Contact Information:\n")
+            display_text.append("   Contact Information:\n")
 
-            for participantInfo in workshop[7]:  # participantInfoList
+            for participant_info in workshop[7]:  # participantInfoList
                 text = []
                 if ui.checkBoxNames.isChecked():
-                    text.append(f"{participantInfo[0]}")
+                    text.append(f"{participant_info[0]}")
                 if ui.checkBoxEmails.isChecked():
-                    text.append(f"{participantInfo[1]}")
+                    text.append(f"{participant_info[1]}")
                 if ui.checkBoxSchools.isChecked():
-                    text.append(f"{participantInfo[2]}")
-                displayText.append("    + ")
-                displayText.append(" - ".join(text))
-                displayText.append("\n")
+                    text.append(f"{participant_info[2]}")
+                display_text.append("    + ")
+                display_text.append(" - ".join(text))
+                display_text.append("\n")
 
-        displayText.append("\n")
+        display_text.append("\n")
 
-    return displayText
+    return display_text
 
 
-def updateDatabase(MainWindow, ws, ui) -> None:
+def update_database(main_window: QMainWindow, ws: Workshops, ui: GuiWindow) -> None:
     """Attempts to handle connecting to the website and database."""
 
     ui.textOutputField.clear()
 
     try:
-        ws.connectAndUpdateDatabase()
-        ui.textOutputField.insertPlainText(welcomeText())
+        ws.connect_and_update_database()
+        ui.textOutputField.insertPlainText(get_welcome_text())
     except ConnectionError:
-        ui.textOutputField.insertPlainText(welcomeTextOffline())
+        ui.textOutputField.insertPlainText(get_welcome_text_for_offline())
     except TypeError:
         ui.textOutputField.insertPlainText(
             "Something went wrong when connecting to server...\nTry again later."
@@ -158,13 +156,13 @@ def updateDatabase(MainWindow, ws, ui) -> None:
                 'Missing "URLInfo.json". Cannot update database.'
             )
 
-    MainWindow.repaint()
+    main_window.repaint()
 
 
-def welcomeText() -> str:
+def get_welcome_text() -> str:
     """Text that first appears in output window."""
 
-    text = [
+    text: list = [
         "Your database has been updated!",
         "",
         "This program will allow you to seach current workshops using a phrase, date range, or Session ID.",
@@ -176,10 +174,10 @@ def welcomeText() -> str:
     return "\n".join(text)
 
 
-def welcomeTextOffline() -> str:
+def get_welcome_text_for_offline() -> str:
     """Text that first appears in output window."""
 
-    text = [
+    text: list = [
         "Cannot connect to server...",
         "You are in offline mode.",
         "You can access workshops from the last time your last successful connection.",

@@ -5,12 +5,12 @@ class SplashScreen():
     ''' Class for creating a splash screen to be displayed while the program is loading.'''
 
     def __init__(self):
-        self.splash = QLabel()
+        self.splash: QLabel = QLabel()
         self.splash.setText('Updating Database. This will take a moment...')
         self.splash.setStyleSheet('padding:15px; font:30pt')
         self.splash.show()
 
-        loop = QtCore.QEventLoop()
+        loop: QtCore.QEventLoop = QtCore.QEventLoop()
         QtCore.QTimer.singleShot(100, loop.quit)
         loop.exec_()
 

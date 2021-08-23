@@ -1,10 +1,9 @@
-"""
-This is a module created to support workshopProgramMain.py.
-This has the Workshops class that is used to pull and format the information
-for each workshop from the workshop url.
-"""
+# This is a module created to support workshopProgramMain.py.
+# This has the Workshops class that is used to pull and format the information
+# for each workshop from the workshop url.
 
-from requests_html import HTMLSession
+
+from requests_html import HTMLSession, HTMLResponse
 from os import chdir
 from pathlib import Path
 from re import search
@@ -17,79 +16,80 @@ class Workshops:
     """A class that contains all the workshop data and methods to get and work on that data."""
 
     def __init__(self):
-        self.searchPhrase: str = ""
-        self.numberOfWorkshops: int = 0
-        self.numberOfParticipants: int = 0
-        self.userName: str = ""
-        self.userPassword: str = ""
-        self.setWorkingDirectory("Workshop_App")
+        self.search_phrase: str = ""
+        self.number_of_workshops: int = 0
+        self.number_of_participants: int = 0
+        self.user_name: str = ""
+        self.user_password: str = ""
+        self.set_working_directory("Workshop_App")
 
-    def connectAndUpdateDatabase(self) -> None:
+    def connect_and_update_database(self) -> None:
         """Connects to the escWorks webpage, logins, gather workshops, and add them to the database."""
 
-        self.getUserInfo()
-        urlInfo = self.getURLInfo()
+        self.get_user_info()
+        url_info: dict = self.get_url_info()
 
         login_data: dict = {
-            "ctl00$mainBody$txtUserName": self.userName,
-            "ctl00$mainBody$txtPassword": self.userPassword,
+            "ctl00$mainBody$txtUserName": self.user_name,
+            "ctl00$mainBody$txtPassword": self.user_password,
             "ctl00$mainBody$btnSubmit": "Submit",
         }
 
-        with HTMLSession() as s:
-            url = urlInfo["signin"]
+        with HTMLSession() as session:
+            url: str = url_info["signin"]
 
-            loginPageContent = s.get(url)
+            login_page_content = session.get(url)
 
-            eventMatch = loginPageContent.html.find(
+            eventMatch = login_page_content.html.find(
                 "input#__EVENTVALIDATION", first=True
             )
             login_data["__EVENTVALIDATION"] = eventMatch.attrs["value"]
-            viewStateMatch = loginPageContent.html.find("input#__VIEWSTATE", first=True)
-            login_data["__VIEWSTATE"] = viewStateMatch.attrs["value"]
+            view_state_match: list = login_page_content.html.find("input#__VIEWSTATE", first=True)
+            login_data["__VIEWSTATE"] = view_state_match.attrs["value"]
 
-            s.post(url, data=login_data)
-            instructorPageContent = s.get(urlInfo["targetInfoURL"])
+            session.post(url, data=login_data)
+            instructor_page_content: HTMLResponse = session.get(url_info["target_info_url"])
 
-        # Collect all workshops that are listed on the webpage.
-        workshopsContent = instructorPageContent.html.find("table.mainBody tr")
+            # Collect all workshops that are listed on the webpage.
+            workshops_content: list = instructor_page_content.html.find("table.mainBody tr")
 
-        # Convert the workshopContent into a list of lists skipping the first row of the table.
-        # The content of each element is as follows:
-        # ['Workshop Name', 'Workshop Date and Time', 'Workshop Enrollment']
-        workshopsContent = [x.text.split("\n") for x in list(workshopsContent)[1:]]
+            # Convert the workshopContent into a list of lists skipping the first row of the table.
+            # The content of each element is as follows:
+            # ['Workshop Name', 'Workshop Date and Time', 'Workshop Enrollment']
+            workshops_content = [x.text.split("\n") for x in list(workshops_content)[1:]]
 
-        wsDB = WorkshopDatabase()
-        wsDB.createWorkshopsTables()
+            ws_db: WorkshopDatabase = WorkshopDatabase()
+            ws_db.create_workshops_tables()
 
-        for workshopInfo in workshopsContent:
-            workshopDict = {}
+            for workshop_info in workshops_content:
+                workshops: dict = {}
 
-            workshopDict["workshopID"] = workshopInfo[0][:6]
-            workshopDict["workshopName"] = workshopInfo[0][9:]
-            workshopDict["workshopStartDateAndTime"] = workshopInfo[1]
-            workshopDict["workshopSignedUp"] = workshopInfo[2].split(" / ")[0]
-            workshopDict["workshopParticipantCapacity"] = workshopInfo[2].split(" / ")[1]
-            workshopDict["workshopURL"] = f'{urlInfo["urlBase"]}{workshopDict["workshopID"]}'
-            workshopDict["workshopParticipantInfoList"] = self.getParticipantInfo(s, workshopDict["workshopID"], urlInfo)
+                workshops["workshop_id"] = workshop_info[0][:6]
+                workshops["workshop_name"] = workshop_info[0][9:]
+                workshops["workshop_start_date_and_time"] = workshop_info[1]
+                workshops["workshop_signed_up"] = workshop_info[2].split(" / ")[0]
+                workshops["workshop_participant_capacity"] = workshop_info[2].split(" / ")[1]
+                workshops["workshop_url"] = f'{url_info["url_base"]}{workshops["workshop_id"]}'
+                workshops["workshop_participant_info_list"] = self.get_participant_info(session, workshops["workshop_id"], url_info)
 
-            wsDB.addWorkshop(workshopDict)
+                ws_db.add_workshop(workshops)
 
-        wsDB.closeConnection()
+        ws_db.close_connection()
 
-    def getParticipantInfo(self, session, ID, urlInfo) -> list:
-        """Returns a list of a dictionary with each participant's name, email, and school.
+    def get_participant_info(self, session: HTMLSession, id: str, url_info: dict) -> list:
+        """
+        Returns a list of a dictionary with each participant's name, email, and school.
         Returns an empty list if no participants were found.
         """
 
-        url = f'{urlInfo["partInfoBaseURL"]}{ID}'
-        pageContent = session.get(url)
-        content = pageContent.html.find("div#RadGrid1_GridData tbody tr")
+        url: str = f'{url_info["part_info_base_url"]}{id}'
+        page_content: HTMLResponse = session.get(url)
+        content: list = page_content.html.find("div#RadGrid1_GridData tbody tr")
 
         # Convert the content into a list omitting the first element in each.
         content = [x.text.split("\n")[1:] for x in list(content)]
 
-        participantsList = []
+        participants: list = []
 
         for item in content:
             if len(item) > 0:
@@ -97,117 +97,120 @@ class Workshops:
                 participant["name"] = item[0]
                 participant["email"] = item[1]
                 participant["school"] = item[2]
-                participantsList.append(participant)
+                participants.append(participant)
 
-        return participantsList
+        return participants
 
-    def getMatchingWorkshops(
-        self, searchWorkshopID=None, startDate=None, endDate=None
-    ) -> None:
+    def get_matching_workshops(
+        self, search_workshop_id=None, start_date=None, end_date=None
+    ) -> list:
         """Finds all workshops that match the search criteria."""
 
-        wsDB: WorkshopDatabase = WorkshopDatabase()
-        workshopList: list = []
+        ws_db: WorkshopDatabase = WorkshopDatabase()
+        workshops: list = []
 
-        self.numberOfParticipants = 0  # Clear out number of participants
+        # Clear out number of participants
+        self.number_of_participants = 0
 
-        if searchWorkshopID != None:
-            workshopList = self.find_with_workshop_ID(searchWorkshopID, wsDB)
+        if search_workshop_id != None:
+            workshops = self.find_with_workshop_id(search_workshop_id, ws_db)
         else:
-            workshopList = self.find_workshops_with_search_phrase(
-                startDate, endDate, wsDB
+            workshops = self.find_workshops_with_search_phrase(
+                start_date, end_date, ws_db
             )
 
-        wsDB.closeConnection()
-        self.numberOfWorkshops = len(workshopList)
+        ws_db.close_connection()
+        self.number_of_workshops = len(workshops)
 
-        return workshopList
+        return workshops
 
     def find_workshops_with_search_phrase(
-        self, startDate: list, endDate: list, wsDB: WorkshopDatabase
+        self, search_start_date: list, search_end_date: list, ws_db: WorkshopDatabase
     ) -> list:
         """Find workshops if a search phrase was provided in the application."""
 
-        workshopList: list = []
+        workshops: list = []
 
-        for workshop in wsDB.getAllWorkshops():
-            if search(self.searchPhrase.lower(), workshop[2].lower()) != None:
-                workshop = list(workshop)
-                workshop.append(self.makeParticipantList(wsDB, workshop))
+        for workshop in ws_db.get_all_workshops():
+            if search(self.search_phrase.lower(), workshop[2].lower()) != None:
+                workshop: list = list(workshop)
+                workshop.append(self.make_participant_list(ws_db, workshop))
 
-                if startDate == None or endDate == None:
+                if search_start_date == None or search_end_date == None:
                     # Search without date range.
-                    workshopList.append(workshop)
-                    self.numberOfParticipants += int(workshop[4])
+                    workshops.append(workshop)
+                    self.number_of_participants += int(workshop[4])
                 else:
                     # Search with a date range.
-                    startDateObj = date(startDate[0], startDate[1], startDate[2])
-                    endDateObj = date(endDate[0], endDate[1], endDate[2])
-                    wsStartDate = self.getStartDate(workshop)
-                    wsStartDate = date(wsStartDate[0], wsStartDate[1], wsStartDate[2])
-                    if wsStartDate >= startDateObj and wsStartDate <= endDateObj:
-                        workshopList.append(workshop)
-                        self.numberOfParticipants += int(workshop[4])
+                    search_start_date: date = date(search_start_date[0], search_start_date[1], search_start_date[2])
+                    search_end_date: date = date(search_end_date[0], search_end_date[1], search_end_date[2])
+                    workshop_date_info: tuple = self.get_start_date(workshop)
+                    workshop_start_date = date(workshop_date_info[0], workshop_date_info[1], workshop_date_info[2])
+                    if workshop_start_date >= search_start_date and workshop_start_date <= search_end_date:
+                        workshops.append(workshop)
+                        self.number_of_participants += int(workshop[4])
 
-        return workshopList
+        return workshops
 
-    def find_with_workshop_ID(self, searchWorkshopID, wsDB, workshopList) -> list:
-        """Find workshops based on the workshopID and return when found.
+    def find_with_workshop_id(self, search_workshop_id: str, ws_db: WorkshopDatabase) -> list:
+        """
+        Find workshops based on the workshopID and return when found.
         Will iterate over all workshops incase of duplicate workshop IDs.
         This will take priority over phrase or date search.
         """
 
-        workshopList = []
-        for workshop in wsDB.getAllWorkshops():
-            if searchWorkshopID == workshop[1]:
+        workshops: list = []
+        for workshop in ws_db.get_all_workshops():
+            if search_workshop_id == workshop[1]:
                 workshop = list(workshop)
-                workshop.append(self.makeParticipantList(wsDB, workshop))
+                workshop.append(self.make_participant_list(ws_db, workshop))
 
-                workshopList.append(workshop)
-                self.numberOfParticipants += int(workshop[4])
+                workshops.append(workshop)
+                self.number_of_participants += int(workshop[4])
 
-        return workshopList
+        return workshops
 
-    def makeParticipantList(self, wsDB, workshop) -> list:
+    def make_participant_list(self, ws_db: WorkshopDatabase, workshop: list) -> list:
         """Return a list of all participants for selected workshop."""
 
-        participants = []
-        for participant in wsDB.getParticipantInfoForWorkshop(workshop[1]):
+        participants: list = []
+        for participant in ws_db.get_participant_info(workshop[1]):
             participants.append(participant)
 
         return participants
 
-    def getNumberOfWorkshops(self) -> int:
+    def get_number_of_workshops(self) -> int:
         """Returns the total number of workshops that match phrase."""
 
-        return self.numberOfWorkshops
+        return self.number_of_workshops
 
-    def getNumberOfParticipants(self) -> int:
+    def get_number_of_participants(self) -> int:
         """Returns the total number of participants for matching workshops."""
 
-        return self.numberOfParticipants
+        return self.number_of_participants
 
-    def getEmails(self, workshops) -> str:
+    def get_emails(self, workshops: list) -> str:
         """Returns a string of emails in a copy and past format for emailing participants."""
 
-        emailList = []
+        emails: list = []
 
         for workshop in workshops:
             # Check if there is participant information in the workshop.
             if workshop[7] != []:
                 for participant in workshop[7]:
                     # Add provided email for this participant.
-                    emailList.append(participant[1])
+                    emails.append(participant[1])
 
-        emails = ";\n".join(emailList)
+        emails = ";\n".join(emails)
 
         if emails == "":
             return "*** NO EMAILS TO DISPLAY! ***"
         else:
             return emails
 
-    def getStartDate(self, workshop) -> tuple:
-        """Returns a tuple of integers for the start date of the provided workshop.
+    def get_start_date(self, workshop: list) -> tuple:
+        """
+        Returns a tuple of integers for the start date of the provided workshop.
         Format: (year, month, day)
         """
 
@@ -215,43 +218,43 @@ class Workshops:
         workshop: list = [int(x) for x in workshop[0].split("/")]
         return (workshop[2], workshop[0], workshop[1])
 
-    def setPhrase(self, phrase: str) -> None:
+    def set_phrase(self, phrase: str) -> None:
         """Sets the phrase to be used in the search process."""
 
-        replaceSymbols: str = "[]\\.^$*+{}|()"
-        for symbol in replaceSymbols:
-            phrase = phrase.replace(symbol, f"\\{symbol}")
+        replace_symbols: str = "[]\\.^$*+{}|()"
+        for symbol in replace_symbols:
+            phrase: str = phrase.replace(symbol, f"\\{symbol}")
 
-        self.searchPhrase = phrase
+        self.search_phrase = phrase
 
-    def storeUserInfo(self) -> None:
+    def store_user_info(self) -> None:
         """Store the user information for later use in userInfo.txt"""
 
-        with open("userInfo.txt", "w") as f:
-            f.write(f"{self.userName}\n")
-            f.write(self.userPassword)
+        with open("user_info.txt", "w") as f:
+            f.write(f"{self.user_name}\n")
+            f.write(self.user_password)
 
-    def getUserInfo(self) -> None:
+    def get_user_info(self) -> None:
         """Retreive the user from userInfo.txt file if it exists."""
 
-        with open("userInfo.txt", "r") as f:
-            self.userName = f.readline().strip()
-            self.userPassword = f.readline().strip()
+        with open("user_info.txt", "r") as f:
+            self.user_name = f.readline().strip()
+            self.user_password = f.readline().strip()
 
-    def getURLInfo(self) -> dict:
+    def get_url_info(self) -> dict:
         """Load and get the Url information from the URLInfo.json file."""
 
-        with open("URLInfo.json", "r") as f:
+        with open("url_info.json", "r") as f:
             return load(f)
 
-    def setWorkingDirectory(self, targetDir: str) -> None:
+    def set_working_directory(self, target_dir: str) -> None:
         """Set the current directory to the <targetDir> dir if not already."""
 
         path: Path = Path(__file__)
 
-        if path.parent.name != targetDir:
-            parentName: str = path.parent.name
-            while parentName != targetDir and path.name != parentName:
+        if path.parent.name != target_dir:
+            parent_name: str = path.parent.name
+            while parent_name != target_dir and path.name != parent_name:
                 path: str = path.parent
             chdir(path)
         else:

@@ -5,9 +5,10 @@ This allows to extend the class with custom functionally and not worry about rec
 the workshopGUI from QT Designer.
 '''
 
+from workshops import Workshops
 from PyQt5.QtWidgets import QDialog, QMessageBox, QLineEdit
-from loginDialog import Ui_LoginDialog
-from workshopGUI import Ui_MainWindow
+from login_dialog import Ui_LoginDialog
+from workshop_gui import Ui_MainWindow
 
 
 class GuiWindow(Ui_MainWindow):
@@ -15,54 +16,54 @@ class GuiWindow(Ui_MainWindow):
     Extended functionallity is added here.
     '''
 
-    def setupUi(self, MainWindow):
-        super().setupUi(MainWindow)
-        self.fontSize = 12
-        self.smallestFontSize = 8
-        self.largestFontSize = 52
+    def setup_ui(self, MainWindow):
+        super().setup_ui(MainWindow)
+        self.font_size = 12
+        self.smallest_font_size = 8
+        self.largest_font_size = 52
         self.textOutputField.setReadOnly(True)
 
-    def increaseFont(self) -> None:
+    def increase_font(self) -> None:
         '''Increase output font if below size 52.'''
 
-        if self.fontSize < self.largestFontSize:
+        if self.font_size < self.largest_font_size:
             text = self.textOutputField.toPlainText()
-            self.fontSize += 4
-            self.textOutputField.setFontPointSize(self.fontSize)
+            self.font_size += 4
+            self.textOutputField.setFontPointSize(self.font_size)
             self.textOutputField.setText(text)
 
     
-    def decreaseFont(self) -> None:
+    def decrease_font(self) -> None:
         '''Decrease output font if above size 8.'''
 
-        if self.fontSize > self.smallestFontSize:
+        if self.font_size > self.smallest_font_size:
             text = self.textOutputField.toPlainText()
-            self.fontSize -= 4
-            self.textOutputField.setFontPointSize(self.fontSize)
+            self.font_size -= 4
+            self.textOutputField.setFontPointSize(self.font_size)
             self.textOutputField.setText(text)
 
 
-    def credsPopupBox(self, ws) -> None:
+    def creds_popup_box(self, ws: Workshops) -> None:
         ''' Open a custom dialog box to update username and password.'''
 
-        LoginDialog = QDialog()
+        login_dialog = QDialog()
         ui = Ui_LoginDialog()
-        ui.setupUi(LoginDialog)
+        ui.setupUi(login_dialog)
         ui.inputPassword.setEchoMode(QLineEdit.Password)
-        LoginDialog.show()
-        ok = LoginDialog.exec_()
+        login_dialog.show()
+        ok = login_dialog.exec_()
         
 
         if ok and len(ui.inputUsername.text()) > 0 and len(ui.inputPassword.text()) > 0:
-            ws.userName = ui.inputUsername.text()
-            ws.userPassword = ui.inputPassword.text()
-            ws.storeUserInfo()
-            self.changeCredsSuccessful(True)
+            ws.user_name = ui.inputUsername.text()
+            ws.user_password = ui.inputPassword.text()
+            ws.store_user_info()
+            self.change_creds_successful(True)
         else:
-            self.changeCredsSuccessful(False)
+            self.change_creds_successful(False)
 
 
-    def changeCredsSuccessful(self, success) -> None:
+    def change_creds_successful(self, success: bool) -> None:
         '''Pops-up message if successful update of user information or not.'''
 
         msg = QMessageBox()
