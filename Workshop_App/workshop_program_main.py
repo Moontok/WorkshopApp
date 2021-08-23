@@ -149,11 +149,9 @@ def update_database(main_window: QMainWindow, ws: Workshops, ui: GuiWindow) -> N
             "Something went wrong when connecting to server...\nTry again later."
         )
     except FileNotFoundError as e:
-        if str(e).split("'")[-2] == "userInfo.txt":
-            ui.textOutputField.insertPlainText("Please enter your login credentials.")
-        elif str(e).split("'")[-2] == "URLInfo.json":
+        if str(e).split("'")[-2] == "connection_info.json":
             ui.textOutputField.insertPlainText(
-                'Missing "URLInfo.json". Cannot update database.'
+                'Missing "connection_info.json". Cannot update database.'
             )
 
     main_window.repaint()

@@ -1,5 +1,4 @@
-Workshop_App/url_info.json
-Workshop_App/user_info.txt
+Workshop_App/connection_info.json
 Workshop_App/workshops.db
 Workshop_App/__pycache__
 .vscode

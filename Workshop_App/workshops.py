@@ -7,7 +7,7 @@ from requests_html import HTMLSession, HTMLResponse
 from os import chdir
 from pathlib import Path
 from re import search
-from json import load
+from json import load, dump
 from datetime import date
 from database import WorkshopDatabase
 
@@ -26,17 +26,16 @@ class Workshops:
     def connect_and_update_database(self) -> None:
         """Connects to the escWorks webpage, logins, gather workshops, and add them to the database."""
 
-        self.get_user_info()
-        url_info: dict = self.get_url_info()
+        connection_info: dict = self.get_connection_info()
 
         login_data: dict = {
-            "ctl00$mainBody$txtUserName": self.user_name,
-            "ctl00$mainBody$txtPassword": self.user_password,
+            "ctl00$mainBody$txtUserName": connection_info["user_name"],
+            "ctl00$mainBody$txtPassword": connection_info["password"],
             "ctl00$mainBody$btnSubmit": "Submit",
         }
 
         with HTMLSession() as session:
-            url: str = url_info["signin"]
+            url: str = connection_info["signin"]
 
             login_page_content = session.get(url)
 
@@ -48,7 +47,7 @@ class Workshops:
             login_data["__VIEWSTATE"] = view_state_match.attrs["value"]
 
             session.post(url, data=login_data)
-            instructor_page_content: HTMLResponse = session.get(url_info["target_info_url"])
+            instructor_page_content: HTMLResponse = session.get(connection_info["target_info_url"])
 
             # Collect all workshops that are listed on the webpage.
             workshops_content: list = instructor_page_content.html.find("table.mainBody tr")
@@ -69,8 +68,8 @@ class Workshops:
                 workshops["workshop_start_date_and_time"] = workshop_info[1]
                 workshops["workshop_signed_up"] = workshop_info[2].split(" / ")[0]
                 workshops["workshop_participant_capacity"] = workshop_info[2].split(" / ")[1]
-                workshops["workshop_url"] = f'{url_info["url_base"]}{workshops["workshop_id"]}'
-                workshops["workshop_participant_info_list"] = self.get_participant_info(session, workshops["workshop_id"], url_info)
+                workshops["workshop_url"] = f'{connection_info["url_base"]}{workshops["workshop_id"]}'
+                workshops["workshop_participant_info_list"] = self.get_participant_info(session, workshops["workshop_id"], connection_info)
 
                 ws_db.add_workshop(workshops)
 
@@ -228,23 +227,22 @@ class Workshops:
         self.search_phrase = phrase
 
     def store_user_info(self) -> None:
-        """Store the user information for later use in userInfo.txt"""
+        """Store the user information for later use in connection_info.json"""
 
-        with open("user_info.txt", "w") as f:
-            f.write(f"{self.user_name}\n")
-            f.write(self.user_password)
+        file_name: str = "connection_info.json"
 
-    def get_user_info(self) -> None:
-        """Retreive the user from userInfo.txt file if it exists."""
+        with open(file_name, "r") as f:
+            connection_info: dict = load(f)
 
-        with open("user_info.txt", "r") as f:
-            self.user_name = f.readline().strip()
-            self.user_password = f.readline().strip()
+        with open(file_name, "w") as f:
+            connection_info["user_name"] = f"{self.user_name}"
+            connection_info["password"] = f"{self.user_password}"
+            dump(connection_info, f, indent=4)
 
-    def get_url_info(self) -> dict:
-        """Load and get the Url information from the URLInfo.json file."""
+    def get_connection_info(self) -> dict:
+        """Load and get the Url information from the connection_info.json file."""
 
-        with open("url_info.json", "r") as f:
+        with open("connection_info.json", "r") as f:
             return load(f)
 
     def set_working_directory(self, target_dir: str) -> None:
