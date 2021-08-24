@@ -63,15 +63,6 @@ class Workshops:
         
         self.construct_workshop_database(workshops)
 
-    def construct_workshop_database(self, workshops: list):
-        """Create/update database and add all workshops to it."""
-        
-        ws_db: WorkshopDatabase = WorkshopDatabase()
-        ws_db.create_workshops_tables()
-        for workshop in workshops:
-            ws_db.add_workshop(workshop)
-        ws_db.close_connection()
-
     
     def get_participant_info(self, session: HTMLSession, id: str, participant_url: str) -> list:
         """
@@ -102,20 +93,19 @@ class Workshops:
     ) -> list:
         """Finds all workshops that match the search criteria."""
 
-        ws_db: WorkshopDatabase = WorkshopDatabase()
-        workshops: list = []
+        with WorkshopDatabase() as ws_db:
+            workshops: list = []
 
-        # Clear out number of participants
-        self.number_of_participants = 0
+            # Clear out number of participants
+            self.number_of_participants = 0
 
-        if search_workshop_id != None:
-            workshops = self.find_with_workshop_id(search_workshop_id, ws_db)
-        else:
-            workshops = self.find_workshops_with_search_phrase(
-                start_date, end_date, ws_db
-            )
+            if search_workshop_id != None:
+                workshops = self.find_with_workshop_id(search_workshop_id, ws_db)
+            else:
+                workshops = self.find_workshops_with_search_phrase(
+                    start_date, end_date, ws_db
+                )
 
-        ws_db.close_connection()
         self.number_of_workshops = len(workshops)
 
         return workshops
@@ -175,23 +165,6 @@ class Workshops:
 
         return participants
 
-
-    def setup_login_information(self, login_page_content: HTMLResponse, connection_info: dict) -> dict:
-        """Setup login information and return it."""
-        
-        login_data: dict = {
-            "ctl00$mainBody$txtUserName": connection_info["user_name"],
-            "ctl00$mainBody$txtPassword": connection_info["password"],
-            "ctl00$mainBody$btnSubmit": "Submit",
-        }
-
-        event_match: Element = login_page_content.html.find("input#__EVENTVALIDATION", first=True)
-        login_data["__EVENTVALIDATION"] = event_match.attrs["value"]
-        
-        view_state_match: Element = login_page_content.html.find("input#__VIEWSTATE", first=True)
-        login_data["__VIEWSTATE"] = view_state_match.attrs["value"]
-
-        return login_data
 
     def get_number_of_workshops(self) -> int:
         """Returns the total number of workshops that match phrase."""
@@ -273,6 +246,32 @@ class Workshops:
             chdir(path)
         else:
             chdir(path.parent)
+
+    def setup_login_information(self, login_page_content: HTMLResponse, connection_info: dict) -> dict:
+        """Setup login information and return it."""
+        
+        login_data: dict = {
+            "ctl00$mainBody$txtUserName": connection_info["user_name"],
+            "ctl00$mainBody$txtPassword": connection_info["password"],
+            "ctl00$mainBody$btnSubmit": "Submit",
+        }
+
+        event_match: Element = login_page_content.html.find("input#__EVENTVALIDATION", first=True)
+        login_data["__EVENTVALIDATION"] = event_match.attrs["value"]
+        
+        view_state_match: Element = login_page_content.html.find("input#__VIEWSTATE", first=True)
+        login_data["__VIEWSTATE"] = view_state_match.attrs["value"]
+
+        return login_data
+    
+
+    def construct_workshop_database(self, workshops: list):
+        """Create/update database and add all workshops to it."""
+        
+        with WorkshopDatabase() as ws_db:                  
+            ws_db.create_workshop_tables()
+            for workshop in workshops:
+                ws_db.add_workshop(workshop)
 
 
 if __name__ == "__main__":

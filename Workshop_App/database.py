@@ -9,7 +9,7 @@ class WorkshopDatabase:
         self.c = self.connection.cursor()
 
 
-    def create_workshops_tables(self) -> None:
+    def create_workshop_tables(self) -> None:
         """Setup workshop database."""
 
         # Clear the tables in the database.
@@ -100,21 +100,13 @@ class WorkshopDatabase:
         )
 
 
-    def close_connection(self):
-        """Closes the database connection."""
+    def __enter__(self):
+        return self
 
+
+    def __exit__(self, exc_type, exc_value, exc_traceback):
         self.c.close()
         self.connection.close()
-
-
-    def __enter__(self):
-        database = WorkshopDatabase()        
-        database.create_workshops_tables()
-        return database
-
-
-    def __exit__(self):
-        self.close_connection()
 
 
 if __name__ == "__main__":
