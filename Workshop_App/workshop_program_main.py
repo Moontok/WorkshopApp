@@ -6,7 +6,6 @@
 
 
 import sys
-#from workshop_gui import MainWindow
 from requests.exceptions import ConnectionError
 from PyQt5.QtWidgets import QApplication, QMainWindow
 from workshops import Workshops
@@ -17,9 +16,9 @@ from splash_screen import SplashScreen
 def main() -> None:
     """Main"""
 
-    app: QApplication = QApplication(sys.argv)
-    main_window: QMainWindow = QMainWindow()
-    ui: GuiWindow = GuiWindow()
+    app = QApplication(sys.argv)
+    main_window = QMainWindow()
+    ui = GuiWindow()
     ui.setup_ui(main_window)
 
     splash = SplashScreen()
@@ -51,10 +50,9 @@ def generate_workshop_info(ui: GuiWindow, ws: Workshops) -> None:
             search_workshop_id=ui.lineEditWorkshopID.text()
         )
     elif ui.checkBoxUseDate.isChecked():
-        workshops: list = ws.get_matching_workshops(
-            start_date=ui.calendarWidget_StartDate.selectedDate().getDate(),
-            end_date=ui.calendarWidget_EndDate.selectedDate().getDate(),
-        )
+        starting_date: tuple = ui.calendarWidget_StartDate.selectedDate().getDate()
+        ending_date: tuple = ui.calendarWidget_EndDate.selectedDate().getDate()
+        workshops: list = ws.get_matching_workshops(start_date=starting_date, end_date=ending_date)
     else:
         workshops: list = ws.get_matching_workshops()
 

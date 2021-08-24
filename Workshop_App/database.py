@@ -8,6 +8,7 @@ class WorkshopDatabase:
         self.connection = connect("workshops.db")
         self.c = self.connection.cursor()
 
+
     def create_workshops_tables(self) -> None:
         """Setup workshop database."""
 
@@ -36,8 +37,9 @@ class WorkshopDatabase:
                     );"""
         )
 
+
     def add_workshop(self, ws_info: dict) -> None:
-        """Add a workshop to database."""
+        """Add a single workshop to database."""
 
         self.c.execute(
             "INSERT INTO workshops (workshop_id, workshop_name, workshop_start_date_and_time, workshop_signed_up, workshop_participant_capacity, workshop_url) VALUES (?,?,?,?,?,?)",
@@ -63,7 +65,8 @@ class WorkshopDatabase:
             )
 
         self.connection.commit()
-
+    
+    
     def get_all_workshops(self) -> list:
         """Return all workshops in database for testing purposes."""
 
@@ -77,12 +80,14 @@ class WorkshopDatabase:
 
         return workshops
 
+
     def get_participant_info(self, workshop_id: str):
         """Retrieve the partipant information that corresponds to the ID."""
         return self.c.execute(
             "SELECT name, email, school FROM participant_information WHERE workshop_id = ?",
             (workshop_id,),
         )
+
 
     def drop_tables(self):
         """Clear all tables in the database."""
@@ -94,11 +99,22 @@ class WorkshopDatabase:
             "DROP TABLE IF EXISTS participant_information;",
         )
 
+
     def close_connection(self):
         """Closes the database connection."""
 
         self.c.close()
         self.connection.close()
+
+
+    def __enter__(self):
+        database = WorkshopDatabase()        
+        database.create_workshops_tables()
+        return database
+
+
+    def __exit__(self):
+        self.close_connection()
 
 
 if __name__ == "__main__":

@@ -6,7 +6,7 @@ the workshopGUI from QT Designer.
 '''
 
 from workshops import Workshops
-from PyQt5.QtWidgets import QDialog, QMessageBox, QLineEdit
+from PyQt5.QtWidgets import QDialog, QMessageBox, QLineEdit, QMainWindow
 from login_dialog import Ui_LoginDialog
 from workshop_gui import Ui_MainWindow
 
@@ -17,8 +17,8 @@ class GuiWindow(Ui_MainWindow):
     Extended functionallity is added here.
     '''
 
-    def setup_ui(self, MainWindow):
-        super().setup_ui(MainWindow)
+    def setup_ui(self, main_window: QMainWindow) -> None:
+        super().setup_ui(main_window)
         self.font_size: int = 12
         self.smallest_font_size: int = 8
         self.largest_font_size: int = 52
@@ -46,14 +46,14 @@ class GuiWindow(Ui_MainWindow):
 
 
     def creds_popup_box(self, ws: Workshops) -> None:
-        ''' Open a custom dialog box to update username and password.'''
+        '''Open a custom dialog box to update username and password.'''
 
         login_dialog: QDialog = QDialog()
         ui: Ui_LoginDialog = Ui_LoginDialog()
         ui.setupUi(login_dialog)
         ui.inputPassword.setEchoMode(QLineEdit.Password)
         login_dialog.show()
-        ok = login_dialog.exec_()        
+        ok: bool = login_dialog.exec_()        
 
         if ok and len(ui.inputUsername.text()) > 0 and len(ui.inputPassword.text()) > 0:
             ws.user_name = ui.inputUsername.text()

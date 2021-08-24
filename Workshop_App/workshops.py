@@ -3,7 +3,7 @@
 # for each workshop from the workshop url.
 
 
-from requests_html import HTMLSession, HTMLResponse
+from requests_html import Element, HTMLSession, HTMLResponse
 from os import chdir
 from pathlib import Path
 from re import search
@@ -23,31 +23,20 @@ class Workshops:
         self.user_password: str = ""
         self.set_working_directory("Workshop_App")
 
+        
+
     def connect_and_update_database(self) -> None:
         """Connects to the escWorks webpage, logins, gather workshops, and add them to the database."""
 
-        connection_info: dict = self.get_connection_info()
-
-        login_data: dict = {
-            "ctl00$mainBody$txtUserName": connection_info["user_name"],
-            "ctl00$mainBody$txtPassword": connection_info["password"],
-            "ctl00$mainBody$btnSubmit": "Submit",
-        }
+        connection_info: dict = self.get_connection_info()    
 
         with HTMLSession() as session:
-            url: str = connection_info["signin"]
+            login_page_content: HTMLResponse = session.get(connection_info["signin_page_url"])
 
-            login_page_content = session.get(url)
+            login_data: dict = self.setup_login_information(login_page_content, connection_info)
 
-            eventMatch = login_page_content.html.find(
-                "input#__EVENTVALIDATION", first=True
-            )
-            login_data["__EVENTVALIDATION"] = eventMatch.attrs["value"]
-            view_state_match: list = login_page_content.html.find("input#__VIEWSTATE", first=True)
-            login_data["__VIEWSTATE"] = view_state_match.attrs["value"]
-
-            session.post(url, data=login_data)
-            instructor_page_content: HTMLResponse = session.get(connection_info["target_info_url"])
+            session.post(connection_info["signin_page_url"], data=login_data)
+            instructor_page_content: HTMLResponse = session.get(connection_info["instructor_page_url"])
 
             # Collect all workshops that are listed on the webpage.
             workshops_content: list = instructor_page_content.html.find("table.mainBody tr")
@@ -57,32 +46,40 @@ class Workshops:
             # ['Workshop Name', 'Workshop Date and Time', 'Workshop Enrollment']
             workshops_content = [x.text.split("\n") for x in list(workshops_content)[1:]]
 
-            ws_db: WorkshopDatabase = WorkshopDatabase()
-            ws_db.create_workshops_tables()
+            url_base: str = connection_info["base_workshop_url"]
+            workshops: list = []
 
             for workshop_info in workshops_content:
-                workshops: dict = {}
+                workshop: dict = {}
 
-                workshops["workshop_id"] = workshop_info[0][:6]
-                workshops["workshop_name"] = workshop_info[0][9:]
-                workshops["workshop_start_date_and_time"] = workshop_info[1]
-                workshops["workshop_signed_up"] = workshop_info[2].split(" / ")[0]
-                workshops["workshop_participant_capacity"] = workshop_info[2].split(" / ")[1]
-                workshops["workshop_url"] = f'{connection_info["url_base"]}{workshops["workshop_id"]}'
-                workshops["workshop_participant_info_list"] = self.get_participant_info(session, workshops["workshop_id"], connection_info)
+                workshop["workshop_id"] = workshop_info[0][:6]
+                workshop["workshop_name"] = workshop_info[0][9:]
+                workshop["workshop_start_date_and_time"] = workshop_info[1]
+                workshop["workshop_signed_up"] = workshop_info[2].split(" / ")[0]
+                workshop["workshop_participant_capacity"] = workshop_info[2].split(" / ")[1]
+                workshop["workshop_url"] = f'{url_base}{workshop["workshop_id"]}'
+                workshop["workshop_participant_info_list"] = self.get_participant_info(session, workshop["workshop_id"], connection_info["participant_page_base_url"])
+                workshops.append(workshop)
+        
+        self.construct_workshop_database(workshops)
 
-                ws_db.add_workshop(workshops)
-
+    def construct_workshop_database(self, workshops: list):
+        """Create/update database and add all workshops to it."""
+        
+        ws_db: WorkshopDatabase = WorkshopDatabase()
+        ws_db.create_workshops_tables()
+        for workshop in workshops:
+            ws_db.add_workshop(workshop)
         ws_db.close_connection()
 
-    def get_participant_info(self, session: HTMLSession, id: str, url_info: dict) -> list:
+    
+    def get_participant_info(self, session: HTMLSession, id: str, participant_url: str) -> list:
         """
         Returns a list of a dictionary with each participant's name, email, and school.
         Returns an empty list if no participants were found.
         """
 
-        url: str = f'{url_info["part_info_base_url"]}{id}'
-        page_content: HTMLResponse = session.get(url)
+        page_content: HTMLResponse = session.get(f'{participant_url}{id}')
         content: list = page_content.html.find("div#RadGrid1_GridData tbody tr")
 
         # Convert the content into a list omitting the first element in each.
@@ -101,7 +98,7 @@ class Workshops:
         return participants
 
     def get_matching_workshops(
-        self, search_workshop_id=None, start_date=None, end_date=None
+        self, search_workshop_id: str=None, start_date: tuple=None, end_date: tuple=None
     ) -> list:
         """Finds all workshops that match the search criteria."""
 
@@ -124,7 +121,7 @@ class Workshops:
         return workshops
 
     def find_workshops_with_search_phrase(
-        self, search_start_date: list, search_end_date: list, ws_db: WorkshopDatabase
+        self, search_start_date: tuple, search_end_date: tuple, ws_db: WorkshopDatabase
     ) -> list:
         """Find workshops if a search phrase was provided in the application."""
 
@@ -141,11 +138,11 @@ class Workshops:
                     self.number_of_participants += int(workshop[4])
                 else:
                     # Search with a date range.
-                    search_start_date: date = date(search_start_date[0], search_start_date[1], search_start_date[2])
-                    search_end_date: date = date(search_end_date[0], search_end_date[1], search_end_date[2])
-                    workshop_date_info: tuple = self.get_start_date(workshop)
-                    workshop_start_date = date(workshop_date_info[0], workshop_date_info[1], workshop_date_info[2])
-                    if workshop_start_date >= search_start_date and workshop_start_date <= search_end_date:
+                    searching_start_date: date = date(*search_start_date[:3])
+                    searching_ending_date: date = date(*search_end_date[:3])
+                    workshop_start_date: date = self.get_start_date(workshop)
+
+                    if workshop_start_date >= searching_start_date and workshop_start_date <= searching_ending_date:
                         workshops.append(workshop)
                         self.number_of_participants += int(workshop[4])
 
@@ -178,6 +175,24 @@ class Workshops:
 
         return participants
 
+
+    def setup_login_information(self, login_page_content: HTMLResponse, connection_info: dict) -> dict:
+        """Setup login information and return it."""
+        
+        login_data: dict = {
+            "ctl00$mainBody$txtUserName": connection_info["user_name"],
+            "ctl00$mainBody$txtPassword": connection_info["password"],
+            "ctl00$mainBody$btnSubmit": "Submit",
+        }
+
+        event_match: Element = login_page_content.html.find("input#__EVENTVALIDATION", first=True)
+        login_data["__EVENTVALIDATION"] = event_match.attrs["value"]
+        
+        view_state_match: Element = login_page_content.html.find("input#__VIEWSTATE", first=True)
+        login_data["__VIEWSTATE"] = view_state_match.attrs["value"]
+
+        return login_data
+
     def get_number_of_workshops(self) -> int:
         """Returns the total number of workshops that match phrase."""
 
@@ -207,21 +222,21 @@ class Workshops:
         else:
             return emails
 
-    def get_start_date(self, workshop: list) -> tuple:
+    def get_start_date(self, workshop: list) -> date:
         """
-        Returns a tuple of integers for the start date of the provided workshop.
+        Returns a date object for the start date of the provided workshop.
         Format: (year, month, day)
         """
 
         workshop: list = workshop[3].split(" ")
-        workshop: list = [int(x) for x in workshop[0].split("/")]
-        return (workshop[2], workshop[0], workshop[1])
+        workshop = [int(x) for x in workshop[0].split("/")]
+        return date(workshop[2], workshop[0], workshop[1])
 
     def set_phrase(self, phrase: str) -> None:
         """Sets the phrase to be used in the search process."""
 
-        replace_symbols: str = "[]\\.^$*+{}|()"
-        for symbol in replace_symbols:
+        symbols_to_replace: str = "[]\\.^$*+{}|()"
+        for symbol in symbols_to_replace:
             phrase: str = phrase.replace(symbol, f"\\{symbol}")
 
         self.search_phrase = phrase
@@ -234,7 +249,8 @@ class Workshops:
         with open(file_name, "r") as f:
             connection_info: dict = load(f)
 
-        with open(file_name, "w") as f:
+        with open(file_name, "w") as f:            
+            connection_info: dict = load(f)
             connection_info["user_name"] = f"{self.user_name}"
             connection_info["password"] = f"{self.user_password}"
             dump(connection_info, f, indent=4)
