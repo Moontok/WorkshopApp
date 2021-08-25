@@ -5,7 +5,7 @@ This allows to extend the class with custom functionally and not worry about rec
 the workshopGUI from QT Designer.
 '''
 
-from workshops import Workshops
+from workshops import WorkshopsTool
 from PyQt5.QtWidgets import QDialog, QMessageBox, QLineEdit, QMainWindow
 from login_dialog import Ui_LoginDialog
 from workshop_gui import Ui_MainWindow
@@ -45,7 +45,7 @@ class GuiWindow(Ui_MainWindow):
             self.textOutputField.setText(text)
 
 
-    def creds_popup_box(self, ws: Workshops) -> None:
+    def creds_popup_box(self, ws: WorkshopsTool) -> None:
         '''Open a custom dialog box to update username and password.'''
 
         login_dialog: QDialog = QDialog()
@@ -56,9 +56,9 @@ class GuiWindow(Ui_MainWindow):
         ok: bool = login_dialog.exec_()        
 
         if ok and len(ui.inputUsername.text()) > 0 and len(ui.inputPassword.text()) > 0:
-            ws.user_name = ui.inputUsername.text()
-            ws.user_password = ui.inputPassword.text()
-            ws.store_user_info()
+            user_name: str = f"{ui.inputUsername.text()}"
+            user_password: str = f"{ui.inputPassword.text()}"
+            ws.store_user_info(user_name, user_password)
             self.change_creds_successful(True)
         else:
             self.change_creds_successful(False)

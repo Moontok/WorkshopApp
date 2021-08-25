@@ -8,7 +8,7 @@
 import sys
 from requests.exceptions import ConnectionError
 from PyQt5.QtWidgets import QApplication, QMainWindow
-from workshops import Workshops
+from workshops import WorkshopsTool
 from gui_window import GuiWindow
 from splash_screen import SplashScreen
 
@@ -23,7 +23,7 @@ def main() -> None:
 
     splash = SplashScreen()
 
-    ws = Workshops()
+    ws = WorkshopsTool()
 
     # Connect buttons and menu items.
     ui.buttonGetWorkshops.clicked.connect(lambda: generate_workshop_info(ui, ws))
@@ -39,11 +39,11 @@ def main() -> None:
     sys.exit(app.exec_())
 
 
-def generate_workshop_info(ui: GuiWindow, ws: Workshops) -> None:
+def generate_workshop_info(ui: GuiWindow, ws: WorkshopsTool) -> None:
     """Output the desired content based on a phrase."""
 
     ui.textOutputField.clear()
-    ws.set_phrase(ui.lineEditPhrase.text())
+    ws.set_search_phrase(ui.lineEditPhrase.text())
 
     if ui.lineEditWorkshopID.text() != "":
         workshops: list = ws.get_matching_workshops(
@@ -132,13 +132,13 @@ def setupWorkshopInformation(ui: GuiWindow, display_text: str, workshops: list) 
     return display_text
 
 
-def update_database(main_window: QMainWindow, ws: Workshops, ui: GuiWindow) -> None:
+def update_database(main_window: QMainWindow, ws: WorkshopsTool, ui: GuiWindow) -> None:
     """Attempts to handle connecting to the website and database."""
 
     ui.textOutputField.clear()
 
     try:
-        ws.connect_and_update_database()
+        ws.setup_workshop_information()
         ui.textOutputField.insertPlainText(get_welcome_text())
     except ConnectionError:
         ui.textOutputField.insertPlainText(get_welcome_text_for_offline())
