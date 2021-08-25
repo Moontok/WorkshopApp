@@ -40,21 +40,21 @@ def main() -> None:
 
 
 def generate_workshop_info(ui: GuiWindow, ws: WorkshopsTool) -> None:
-    """Output the desired content based on a phrase."""
+    """Output the desired content based on selected options."""
 
     ui.textOutputField.clear()
     ws.set_search_phrase(ui.lineEditPhrase.text())
+    workshops: list = []
 
     if ui.lineEditWorkshopID.text() != "":
-        workshops: list = ws.get_matching_workshops(
-            search_workshop_id=ui.lineEditWorkshopID.text()
-        )
+        workshops = ws.get_matching_workshops_by_id(ui.lineEditWorkshopID.text())
     elif ui.checkBoxUseDate.isChecked():
         starting_date: tuple = ui.calendarWidget_StartDate.selectedDate().getDate()
         ending_date: tuple = ui.calendarWidget_EndDate.selectedDate().getDate()
-        workshops: list = ws.get_matching_workshops(start_date=starting_date, end_date=ending_date)
+        
+        workshops  = ws.get_matching_workshops_by_date_range(starting_date, ending_date)
     else:
-        workshops: list = ws.get_matching_workshops()
+        workshops  = ws.get_matching_workshops()
 
     display_text: list = []
     display_text.append(f"Number of matching workshops: {ws.get_number_of_workshops()}\n\n")
@@ -92,17 +92,15 @@ def setupWorkshopInformation(ui: GuiWindow, display_text: str, workshops: list) 
     for workshop in workshops:
         text: list = []
         if ui.checkBoxWsID.isChecked():
-            text.append(f"{workshop[1]}")  # workshopID
+            text.append(f"{workshop[1]}")
         if ui.checkBoxWsStartDate.isChecked():
-            text.append(f"{workshop[3]}")  # workshopStartDate
+            text.append(f"{workshop[3]}")
         if ui.checkBoxWsPartNumbers.isChecked():
-            text.append(
-                f"{workshop[4]}/{workshop[5]}"
-            )  # workshopSignedUp/workshopParticipantCapacity
+            text.append(f"{workshop[4]}/{workshop[5]}")
         if ui.checkBoxWsName.isChecked():
-            text.append(f"{workshop[2]}")  # workshopName
+            text.append(f"{workshop[2]}")
         if ui.checkBoxWsURL.isChecked():
-            text.append(f"\n   Url: {workshop[6]}")  # workshopURL
+            text.append(f"\n   Url: {workshop[6]}")
 
         display_text.append(" - ".join(text))
         display_text.append("\n")
@@ -115,7 +113,7 @@ def setupWorkshopInformation(ui: GuiWindow, display_text: str, workshops: list) 
 
             display_text.append("   Contact Information:\n")
 
-            for participant_info in workshop[7]:  # participantInfoList
+            for participant_info in workshop[7]:
                 text = []
                 if ui.checkBoxNames.isChecked():
                     text.append(f"{participant_info[0]}")

@@ -6,7 +6,7 @@ from os import chdir
 from pathlib import Path
 from re import search
 from json import load, dump
-from datetime import date
+from datetime import datetime
 from database import WorkshopDatabase
 
 
@@ -148,8 +148,8 @@ class WorkshopsTool:
 
     def construct_participant_info(self, id: str) -> list:
         """
-        Returns a list of a dictionaries with each participant's name, email, and school.
-        Returns an empty list if no participants were found.
+        Returns a list of dictionaries with each participant's name, email, and school or
+        returns an empty list if no participants were found.
         """
 
         content: list = self.connector.get_participant_page(id)
@@ -211,83 +211,70 @@ class WorkshopsTool:
             return emails
 
 
-    def get_start_date(self, workshop: list) -> date:
-        """
-        Returns a date object for the start date of the provided workshop.
-        Format: (year, month, day)
-        """
-
-        workshop: list = workshop[3].split(" ")
-        workshop = [int(x) for x in workshop[0].split("/")]
-        return date(workshop[2], workshop[0], workshop[1])
-
-
-    def get_matching_workshops(
-        self, search_workshop_id: str=None, start_date: tuple=None, end_date: tuple=None
-    ) -> list:
-        """Finds all workshops that match the search criteria."""
+    def get_matching_workshops(self) -> list:
+        """Return a list of workshops that are matching the current search phrase."""
 
         with WorkshopDatabase() as ws_db:
             workshops: list = []
-
-            # Clear out number of participants
             self.number_of_participants = 0
 
-            if search_workshop_id != None:
-                workshops = self.get_workshops_with_id(search_workshop_id, ws_db)
-            else:
-                workshops = self.get_workshops_by_search_phrase(start_date, end_date, ws_db)
+            for workshop in ws_db.get_all_workshops():
+                if search(self.search_phrase.lower(), workshop[2].lower()) != None:
+                    workshop: list = list(workshop)
+                    workshop.append(self.make_participant_list(ws_db, workshop))
+                    workshops.append(workshop)
+                    self.number_of_participants += int(workshop[4])
 
         self.number_of_workshops = len(workshops)
 
         return workshops
 
 
-    def get_workshops_by_search_phrase(
-        self, search_start_date: tuple, search_end_date: tuple, ws_db: WorkshopDatabase
-    ) -> list:
-        """Find workshops if a search phrase was provided in the application."""
+    def get_matching_workshops_by_date_range(self, start_date: tuple, end_date: tuple) -> list:
+        """Returns al ist of matching workshops base on a provided date range."""
+
+        # Get all workshops that match the entered search phrase.
+        workshops_to_check: list = self.get_matching_workshops()
+        
+        searching_start_date: datetime = datetime(*start_date[:3])
+        searching_end_date: datetime = datetime(*end_date[:3])
 
         workshops: list = []
+        self.number_of_participants = 0
+        
+        for workshop in workshops_to_check:
+            workshop_start_date: datetime = datetime.strptime(workshop[3], "%m/%d/%Y %I:%M %p")            
 
-        for workshop in ws_db.get_all_workshops():
-            if search(self.search_phrase.lower(), workshop[2].lower()) != None:
-                workshop: list = list(workshop)
-                workshop.append(self.make_participant_list(ws_db, workshop))
-
-                if search_start_date == None or search_end_date == None:
-                    # Search without date range.
-                    workshops.append(workshop)
-                    self.number_of_participants += int(workshop[4])
-                else:
-                    # Search with a date range.
-                    searching_start_date: date = date(*search_start_date[:3])
-                    searching_ending_date: date = date(*search_end_date[:3])
-                    workshop_start_date: date = self.get_start_date(workshop)
-
-                    if workshop_start_date >= searching_start_date and workshop_start_date <= searching_ending_date:
-                        workshops.append(workshop)
-                        self.number_of_participants += int(workshop[4])
-
-        return workshops
-
-
-    def get_workshops_with_id(self, search_workshop_id: str, ws_db: WorkshopDatabase) -> list:
-        """
-        Find workshops based on the workshopID and return when found.
-        Will iterate over all workshops incase of duplicate workshop IDs.
-        This will take priority over phrase or date search.
-        """
-
-        workshops: list = []
-        for workshop in ws_db.get_all_workshops():
-            if search_workshop_id == workshop[1]:
-                workshop = list(workshop)
-                workshop.append(self.make_participant_list(ws_db, workshop))
-
+            if workshop_start_date >= searching_start_date and workshop_start_date <= searching_end_date:
                 workshops.append(workshop)
                 self.number_of_participants += int(workshop[4])
 
+        self.number_of_workshops = len(workshops)
+        return workshops
+
+
+    def get_matching_workshops_by_id(self, search_workshop_id: str) -> list:
+        """
+        Find workshops based on the workshopID and return when found.
+        This will take priority over phrase or date search.
+        """
+
+        with WorkshopDatabase() as ws_db:
+            workshops: list = []
+            self.number_of_participants = 0
+
+            for workshop in ws_db.get_all_workshops():
+                if search_workshop_id == workshop[1]:
+                    workshop = list(workshop)
+                    workshop.append(self.make_participant_list(ws_db, workshop))
+
+                    workshops.append(workshop)
+                    self.number_of_participants = int(workshop[4])
+                    self.number_of_workshops = 1
+
+                    return workshops
+
+        self.number_of_workshops = 0
         return workshops
 
 
