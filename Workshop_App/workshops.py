@@ -1,6 +1,4 @@
-# This is a module created to support workshopProgramMain.py.
-# This has the Workshops class that is used to pull and format the information
-# for each workshop from the workshop url.
+# This is a module created to support workshop_program.py.
 
 
 from requests_html import Element, HTMLSession, HTMLResponse
@@ -13,6 +11,8 @@ from database import WorkshopDatabase
 
 
 class ConnectionTool:
+    """Class that connects to target webpages and scrapes target information."""
+
     def __init__(self):
         self.session: HTMLSession = HTMLSession()
         self.connection_info: dict = self.setup_connection_info()
@@ -22,6 +22,8 @@ class ConnectionTool:
 
 
     def intial_connection(self) -> None:
+        """Establishes an initial connection to the sign-in page."""
+
         login_page_content: HTMLResponse = self.session.get(self.connection_info["signin_page_url"])            
         login_data: dict = self.setup_login_information(login_page_content)
 
@@ -29,11 +31,15 @@ class ConnectionTool:
 
 
     def get_instructor_page(self) -> list:
+        """Scrapes the workshop information from the instructor page."""
+
         page_content: HTMLResponse = self.session.get(self.connection_info["instructor_page_url"])
         return page_content.html.find("table.mainBody tr")
 
 
     def get_participant_page(self, id: str) -> list:
+        """Scrapes the participant information for a target workshop based in provided ID."""
+
         participant_url: str = f'{self.connection_info["participant_page_base_url"]}{id}'
         page_content: HTMLResponse = self.session.get(participant_url)
         return page_content.html.find("div#RadGrid1_GridData tbody tr")
@@ -46,7 +52,9 @@ class ConnectionTool:
             return load(f)
 
 
-    def get_connection_info(self, item: str) -> str:
+    def get_connection_info_for(self, item: str) -> str:
+        """Return the connection information based on provided item."""
+
         return self.connection_info[item]
 
 
@@ -64,7 +72,7 @@ class ConnectionTool:
             chdir(path.parent)
 
     
-    def store_user_info(self, user_name: str, user_password) -> None:
+    def store_user_info(self, user_name: str, user_password: str) -> None:
         """Store the user information for later use in connection_info.json"""
 
         file_name: str = "connection_info.json"
@@ -72,8 +80,7 @@ class ConnectionTool:
         with open(file_name, "r") as f:
             connection_info: dict = load(f)
 
-        with open(file_name, "w") as f:            
-            connection_info: dict = load(f)
+        with open(file_name, "w") as f:
             connection_info["user_name"] = user_name
             connection_info["password"] = user_password
             dump(connection_info, f, indent=4)
@@ -98,6 +105,8 @@ class ConnectionTool:
 
 
     def close_session(self) -> None:
+        """For good measures, closes the HTMLSession."""
+
         self.session.close()
 
 
@@ -108,10 +117,9 @@ class WorkshopsTool:
         self.search_phrase: str = ""
         self.connector: ConnectionTool = ConnectionTool()
 
-        #self.setup_workshop_information()
-
 
     def setup_workshop_information(self) -> None:
+        """Rip, organize, and clean the workshop information."""
 
         workshops_content: list = self.connector.get_instructor_page()
 
@@ -129,7 +137,7 @@ class WorkshopsTool:
             workshop["workshop_start_date_and_time"] = workshop_info[1]
             workshop["workshop_signed_up"] = workshop_info[2].split(" / ")[0]
             workshop["workshop_participant_capacity"] = workshop_info[2].split(" / ")[1]
-            workshop["workshop_url"] = f'{self.connector.get_connection_info("base_workshop_url")}{workshop["workshop_id"]}'
+            workshop["workshop_url"] = f'{self.connector.get_connection_info_for("base_workshop_url")}{workshop["workshop_id"]}'
             workshop["workshop_participant_info_list"] = self.construct_participant_info(workshop["workshop_id"])
             workshops.append(workshop)
     
@@ -214,16 +222,6 @@ class WorkshopsTool:
         return date(workshop[2], workshop[0], workshop[1])
 
 
-    def make_participant_list(self, ws_db: WorkshopDatabase, workshop: list) -> list:
-        """Return a list of all participants for selected workshop."""
-
-        participants: list = []
-        for participant in ws_db.get_participant_info(workshop[1]):
-            participants.append(participant)
-
-        return participants
-
-
     def get_matching_workshops(
         self, search_workshop_id: str=None, start_date: tuple=None, end_date: tuple=None
     ) -> list:
@@ -238,9 +236,7 @@ class WorkshopsTool:
             if search_workshop_id != None:
                 workshops = self.get_workshops_with_id(search_workshop_id, ws_db)
             else:
-                workshops = self.get_workshops_by_search_phrase(
-                    start_date, end_date, ws_db
-                )
+                workshops = self.get_workshops_by_search_phrase(start_date, end_date, ws_db)
 
         self.number_of_workshops = len(workshops)
 
@@ -303,6 +299,12 @@ class WorkshopsTool:
             phrase: str = phrase.replace(symbol, f"\\{symbol}")
 
         self.search_phrase = phrase
+
+
+    def make_participant_list(self, ws_db: WorkshopDatabase, workshop: list) -> list:
+        """Return a list of all participants for selected workshop."""
+
+        return [p for p in ws_db.get_participant_info(workshop[1])]
 
 
 if __name__ == "__main__":

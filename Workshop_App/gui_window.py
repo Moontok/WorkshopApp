@@ -56,9 +56,9 @@ class GuiWindow(Ui_MainWindow):
         ok: bool = login_dialog.exec_()        
 
         if ok and len(ui.inputUsername.text()) > 0 and len(ui.inputPassword.text()) > 0:
-            user_name: str = f"{ui.inputUsername.text()}"
-            user_password: str = f"{ui.inputPassword.text()}"
-            ws.store_user_info(user_name, user_password)
+            user_name: str = ui.inputUsername.text()
+            user_password: str = ui.inputPassword.text()
+            ws.connector.store_user_info(user_name, user_password)
             self.change_creds_successful(True)
         else:
             self.change_creds_successful(False)
