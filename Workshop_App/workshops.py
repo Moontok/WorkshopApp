@@ -127,10 +127,10 @@ class WorkshopsTool:
         # ['Workshop Name', 'Workshop Date and Time', 'Workshop Enrollment']
         workshops_content = [x.text.split("\n") for x in list(workshops_content)[1:]]
 
-        workshops: list = []
+        workshops = list()
 
         for workshop_info in workshops_content:
-            workshop: dict = {}
+            workshop = dict()
 
             workshop["workshop_id"] = workshop_info[0][:6]
             workshop["workshop_name"] = workshop_info[0][9:]
@@ -157,11 +157,11 @@ class WorkshopsTool:
         # Convert the content into a list omitting the first element in each.
         content = [x.text.split("\n")[1:] for x in list(content)]
 
-        participants: list = []
+        participants = list()
 
         for item in content:
             if len(item) > 0:
-                participant = {}
+                participant = dict()
                 participant["name"] = item[0]
                 participant["email"] = item[1]
                 participant["school"] = item[2]
@@ -194,7 +194,7 @@ class WorkshopsTool:
     def get_emails(self, workshops: list) -> str:
         """Returns a string of emails in a copy and past format for emailing participants."""
 
-        emails: list = []
+        emails = list()
 
         for workshop in workshops:
             # Check if there is participant information in the workshop.
@@ -215,7 +215,7 @@ class WorkshopsTool:
         """Return a list of workshops that are matching the current search phrase."""
 
         with WorkshopDatabase() as ws_db:
-            workshops: list = []
+            workshops = list()
             self.number_of_participants = 0
 
             for workshop in ws_db.get_all_workshops():
@@ -239,7 +239,7 @@ class WorkshopsTool:
         searching_start_date: datetime = datetime(*start_date[:3])
         searching_end_date: datetime = datetime(*end_date[:3])
 
-        workshops: list = []
+        workshops = list()
         self.number_of_participants = 0
         
         for workshop in workshops_to_check:
@@ -260,7 +260,7 @@ class WorkshopsTool:
         """
 
         with WorkshopDatabase() as ws_db:
-            workshops: list = []
+            workshops = list()
             self.number_of_participants = 0
 
             for workshop in ws_db.get_all_workshops():

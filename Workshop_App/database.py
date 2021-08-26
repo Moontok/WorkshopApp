@@ -70,7 +70,7 @@ class WorkshopDatabase:
     def get_all_workshops(self) -> list:
         """Return all workshops in database for testing purposes."""
 
-        workshops: list = []
+        workshops = list()
 
         try:
             for workshop in self.c.execute("SELECT * FROM workshops"):

@@ -48,8 +48,8 @@ class GuiWindow(Ui_MainWindow):
     def creds_popup_box(self, ws: WorkshopsTool) -> None:
         '''Open a custom dialog box to update username and password.'''
 
-        login_dialog: QDialog = QDialog()
-        ui: Ui_LoginDialog = Ui_LoginDialog()
+        login_dialog = QDialog()
+        ui = Ui_LoginDialog()
         ui.setupUi(login_dialog)
         ui.inputPassword.setEchoMode(QLineEdit.Password)
         login_dialog.show()
@@ -67,7 +67,7 @@ class GuiWindow(Ui_MainWindow):
     def change_creds_successful(self, success: bool) -> None:
         '''Pops-up message if successful update of user information or not.'''
 
-        msg: QMessageBox = QMessageBox()
+        msg = QMessageBox()
         msg.setWindowTitle('Results')
 
         if success:

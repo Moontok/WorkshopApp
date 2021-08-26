@@ -22,7 +22,6 @@ def main() -> None:
     ui.setup_ui(main_window)
 
     splash = SplashScreen()
-
     ws = WorkshopsTool()
 
     # Connect buttons and menu items.
@@ -44,19 +43,18 @@ def generate_workshop_info(ui: GuiWindow, ws: WorkshopsTool) -> None:
 
     ui.textOutputField.clear()
     ws.set_search_phrase(ui.lineEditPhrase.text())
-    workshops: list = []
+    workshops = list()
 
     if ui.lineEditWorkshopID.text() != "":
         workshops = ws.get_matching_workshops_by_id(ui.lineEditWorkshopID.text())
     elif ui.checkBoxUseDate.isChecked():
         starting_date: tuple = ui.calendarWidget_StartDate.selectedDate().getDate()
-        ending_date: tuple = ui.calendarWidget_EndDate.selectedDate().getDate()
-        
+        ending_date: tuple = ui.calendarWidget_EndDate.selectedDate().getDate()        
         workshops  = ws.get_matching_workshops_by_date_range(starting_date, ending_date)
     else:
         workshops  = ws.get_matching_workshops()
 
-    display_text: list = []
+    display_text = list()
     display_text.append(f"Number of matching workshops: {ws.get_number_of_workshops()}\n\n")
     display_text.append(f"Total Signed Up: {ws.get_number_of_participants()}\n\n")
 
@@ -90,7 +88,7 @@ def setupWorkshopInformation(ui: GuiWindow, display_text: str, workshops: list) 
     """
 
     for workshop in workshops:
-        text: list = []
+        text = list()
         if ui.checkBoxWsID.isChecked():
             text.append(f"{workshop[1]}")
         if ui.checkBoxWsStartDate.isChecked():
@@ -114,7 +112,7 @@ def setupWorkshopInformation(ui: GuiWindow, display_text: str, workshops: list) 
             display_text.append("   Contact Information:\n")
 
             for participant_info in workshop[7]:
-                text = []
+                text = list()
                 if ui.checkBoxNames.isChecked():
                     text.append(f"{participant_info[0]}")
                 if ui.checkBoxEmails.isChecked():
