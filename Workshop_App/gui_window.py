@@ -18,7 +18,7 @@ class GuiWindow(Ui_MainWindow):
     '''
 
     def setup_ui(self, main_window: QMainWindow) -> None:
-        super().setup_ui(main_window)
+        super().setupUi(main_window)
         self.font_size: int = 12
         self.smallest_font_size: int = 8
         self.largest_font_size: int = 52

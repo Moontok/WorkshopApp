@@ -1,8 +1,74 @@
-from workshops import WorkshopsTool
+import csv
+import os
+from openpyxl import Workbook
 from gui_window import GuiWindow
+from PyQt5.QtWidgets import QFileDialog, QMainWindow
+from workshops import WorkshopsTool
 
-   
-def get_base_display_text(ui: GuiWindow, ws: WorkshopsTool, workshops: list, button_check: bool):
+
+def generate_workshop_info(ui: GuiWindow, ws: WorkshopsTool) -> None:
+    """Output the desired content based on selected options."""
+
+    ui.textOutputField.clear()
+    ws.set_search_phrase(ui.lineEditPhrase.text())
+    workshops = list()
+
+    workshops = get_workshops(ui, ws)
+
+    button_check: bool = check_button_options(ui)
+
+    text_to_display: str = get_workshop_display_text(ui, ws, workshops, button_check)
+
+    ui.textOutputField.clear()
+    ui.textOutputField.insertPlainText(text_to_display)
+
+
+def get_workshops(ui: GuiWindow, ws: WorkshopsTool) -> list:
+    """Return the correct workshops based on selected options."""
+
+    if ui.lineEditWorkshopID.text() != "":
+        workshops = ws.get_matching_workshops_by_id(ui.lineEditWorkshopID.text())
+    elif ui.checkBoxUseDate.isChecked():
+        starting_date: tuple = ui.calendarWidget_StartDate.selectedDate().getDate()
+        ending_date: tuple = ui.calendarWidget_EndDate.selectedDate().getDate()        
+        workshops  = ws.get_matching_workshops_by_date_range(starting_date, ending_date)
+    else:
+        workshops  = ws.get_matching_workshops()
+
+    return workshops
+
+
+def check_button_options(ui: GuiWindow) -> bool:
+    """Return true if any button is checked."""
+
+    return (
+        ui.checkBoxWsID.isChecked()
+        or ui.checkBoxWsStartDate.isChecked()
+        or ui.checkBoxWsPartNumbers.isChecked()
+        or ui.checkBoxWsName.isChecked()
+        or ui.checkBoxWsURL.isChecked()
+    )
+
+
+def update_database(main_window: QMainWindow, ws: WorkshopsTool, ui: GuiWindow) -> None:
+    """Attempts to handle connecting to the website and database."""
+
+    ui.textOutputField.clear()
+
+    try:
+        ws.setup_workshop_information()
+        ui.textOutputField.insertPlainText(get_welcome_text())
+    except ConnectionError:
+        ui.textOutputField.insertPlainText(get_welcome_text_for_offline())
+    except TypeError:
+        ui.textOutputField.insertPlainText(get_server_error_text())
+    except FileNotFoundError as e:
+        ui.textOutputField.insertPlainText(get_missing_file_text())
+
+    main_window.repaint()
+
+
+def get_workshop_display_text(ui: GuiWindow, ws: WorkshopsTool, workshops: list, button_check: bool) -> str:
     display_text = list()
     display_text.append(f"Number of matching workshops: {ws.get_number_of_workshops()}\n\n")
     display_text.append(f"Total Signed Up: {ws.get_number_of_participants()}\n\n")
@@ -12,7 +78,7 @@ def get_base_display_text(ui: GuiWindow, ws: WorkshopsTool, workshops: list, but
 
     display_text.append(f"All emails for these workshops:\n\n{ws.get_emails(workshops)}")
     
-    return display_text
+    return "".join(display_text)
 
 
 def get_welcome_text() -> str:
@@ -107,3 +173,39 @@ def setup_workshop_information_text(ui: GuiWindow, display_text: str, workshops:
         display_text.append("\n")
 
     return display_text
+
+def export_workshops_info(ui: GuiWindow, ws: WorkshopsTool) -> str:
+    """Returns a selected directory."""
+
+    file_name: str = "workshop_info.csv"
+    # file_name: str = "workshop_info.xlsx"
+    base_directory: str = str(QFileDialog.getExistingDirectory(None, "Select Directory"))
+
+    file_path: str = os.path.join(base_directory, file_name)
+
+    ws.set_search_phrase(ui.lineEditPhrase.text())
+
+    workshops: list = get_workshops(ui, ws)
+
+    # button_check: bool = check_button_options(ui)
+
+    # workbook = Workbook()
+    # workbook["Sheet"].title = "Workshops"
+
+    # workshops_sheet = workbook.active
+    # emails_sheet = workbook.create_sheet("Emails")
+    
+    # workshops_sheet["A1"] = "test"
+    # emails_sheet["A1"] = "test2"
+
+    # workbook.save(filename=file_path)
+
+    with open(file_path, "w") as workshop_file:
+        workshop_writer = csv.writer(workshop_file, delimiter=",", quotechar='"', quoting=csv.QUOTE_MINIMAL, lineterminator = '\n')
+
+        for workshop in workshops:
+            workshop_writer.writerow(workshop[1:7])
+
+    
+if __name__ == '__main__':
+    print('This is a module...')

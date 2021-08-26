@@ -426,6 +426,7 @@
     </property>
     <addaction name="actionUpdate_Credentials"/>
     <addaction name="actionUpdate_Database"/>
+    <addaction name="actionExport_Workshops_Info"/>
    </widget>
    <widget class="QMenu" name="menuView">
     <property name="title">
@@ -462,6 +463,11 @@
   <action name="actionUpdate_Database">
    <property name="text">
     <string>Update Database</string>
+   </property>
+  </action>
+  <action name="actionExport_Workshops_Info">
+   <property name="text">
+    <string>Export Workshops Info</string>
    </property>
   </action>
  </widget>

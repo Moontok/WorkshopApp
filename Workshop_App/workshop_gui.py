@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'WorkshopProgram.ui'
+# Form implementation generated from reading ui file 'workshop_program.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.4
 #
@@ -12,7 +12,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 
 
 class Ui_MainWindow(object):
-    def setup_ui(self, MainWindow):
+    def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(1132, 778)
         icon = QtGui.QIcon()
@@ -235,8 +235,11 @@ class Ui_MainWindow(object):
         self.actionUpdate_Credentials.setObjectName("actionUpdate_Credentials")
         self.actionUpdate_Database = QtWidgets.QAction(MainWindow)
         self.actionUpdate_Database.setObjectName("actionUpdate_Database")
+        self.actionExport_Workshops_Info = QtWidgets.QAction(MainWindow)
+        self.actionExport_Workshops_Info.setObjectName("actionExport_Workshops_Info")
         self.menuActions.addAction(self.actionUpdate_Credentials)
         self.menuActions.addAction(self.actionUpdate_Database)
+        self.menuActions.addAction(self.actionExport_Workshops_Info)
         self.menuView.addAction(self.actionIncrease_CTRL)
         self.menuView.addAction(self.actionDecrease_CTRL)
         self.menubar.addAction(self.menuActions.menuAction())
@@ -273,6 +276,7 @@ class Ui_MainWindow(object):
         self.actionDecrease_CTRL.setShortcut(_translate("MainWindow", "Ctrl+-"))
         self.actionUpdate_Credentials.setText(_translate("MainWindow", "Update Credentials"))
         self.actionUpdate_Database.setText(_translate("MainWindow", "Update Database"))
+        self.actionExport_Workshops_Info.setText(_translate("MainWindow", "Export Workshops Info"))
 
 
 if __name__ == "__main__":
@@ -280,6 +284,6 @@ if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
     ui = Ui_MainWindow()
-    ui.setup_ui(MainWindow)
+    ui.setupUi(MainWindow)
     MainWindow.show()
     sys.exit(app.exec_())
