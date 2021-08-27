@@ -1,6 +1,7 @@
 import os
 from openpyxl import Workbook
-from openpyxl.styles import Font
+from openpyxl.styles import Font, PatternFill, Alignment, Side, Fill
+from openpyxl.styles.borders import Border
 from gui_window import GuiWindow
 from PyQt5.QtWidgets import QFileDialog, QMainWindow
 from workshops import WorkshopsTool
@@ -191,11 +192,19 @@ def export_workshops_info(ui: GuiWindow, ws: WorkshopsTool) -> str:
 
     workshops_sheet = workbook.active
     attendance_sheet = workbook.create_sheet("Attendance")
-    attendance_sheet.append(["TRAINING NAME"])
-    attendance_sheet.append(["TRAINING DATES"])
+
+    attendance_sheet.merge_cells("A1:B1")
+    attendance_sheet.merge_cells("C1:E1")
+    attendance_sheet.merge_cells("A2:B2")
+    attendance_sheet.merge_cells("C2:E2")
+    attendance_sheet["A1"] = "Workshop Name:"
+    attendance_sheet["C1"] = "<NAME_HERE>"
+    attendance_sheet["A2"] = "Workshop Dates:"
+    attendance_sheet["C2"] = "<DATES_HERE>"
     attendance_sheet.append([])
-    attendance_sheet.append(["COOP", "Name", "Email", "District", "Hours", "Dates", "Attended"])
-    
+
+    coops = []
+
     for workshop in workshops:
         coop_part: str = ""
         for letter in workshop[2]:
@@ -205,7 +214,7 @@ def export_workshops_info(ui: GuiWindow, ws: WorkshopsTool) -> str:
                 if len(coop_part) == 0:
                     coop_part = "DeQueen_Mena"
                 break
-
+        
         row = workshop[1:6]
         row.append(coop_list(coop_part))
         row.append(workshop[6])
@@ -215,26 +224,104 @@ def export_workshops_info(ui: GuiWindow, ws: WorkshopsTool) -> str:
         sheet = workbook.create_sheet(coop_part)        
         sheet.append(row)
 
+        attendance_sheet.append([coop_part, workshop[1], workshop[6]])
+        current_row = attendance_sheet._current_row
+        attendance_sheet.merge_cells(f"C{current_row}:E{current_row}")
+        coops.append(coop_part)
+        attendance_sheet.append(["Name", "Email", "District", "Hours", "Dates Attended"])
+
         if len(workshop[7]) > 0:
             for partipant in workshop[7]:
-                attendance_row: list = list(partipant)
-                attendance_row.insert(0, coop_part)
-                attendance_sheet.append(attendance_row)
                 sheet.append(list(partipant))
 
-    
-    format_sheet(attendance_sheet)
+                attendance_row: list = list(partipant)
+                attendance_sheet.append(attendance_row)
+
+        attendance_sheet.append([])
+
+    attendance_sheet_last_row: int = attendance_sheet._current_row
+    format_sheet(attendance_sheet, attendance_sheet_last_row, coops)
 
     workbook.save(filename=file_path)
 
 
-def format_sheet(worksheet) -> None:
+def format_sheet(worksheet, last_row: int, coops: list) -> None:    
+            
+    worksheet.column_dimensions["A"].width = 40
+    worksheet.column_dimensions["B"].width = 40
+    worksheet.column_dimensions["C"].width = 40
+    worksheet.column_dimensions["D"].width = 20
+    worksheet.column_dimensions["E"].width = 40
+    
+    thick = Side(border_style="thick", color="000000")
+    thin = Side(border_style="thin", color="000000")
+    dark_grey_fill = PatternFill(fill_type="solid", start_color="222222", end_color="222222") 
+    grey_fill = PatternFill(fill_type="solid", start_color="DDDDDD", end_color="DDDDDD")   
 
-    worksheet["A1"].font = Font(size=14, bold=True, italic=True, color="FF0000")    
-    worksheet["B1"].font = Font(size=14, bold=True, color="FF0000")
+    title_header_font = Font(size=16, bold=True)
+    title_header_alignment = Alignment(horizontal="right")
+    title_content_font = Font(size=16, bold=True, color="AEEBAE")
+    title_content_alignment = Alignment(horizontal="center")
 
-    for column in "ABCDEFG":
-        worksheet[f"{column}4"].font = Font(size=14, bold=True)
+    worksheet["A1"].font = title_header_font 
+    worksheet["A2"].font = title_header_font
+    worksheet["A1"].alignment = title_header_alignment 
+    worksheet["A2"].alignment = title_header_alignment    
+    worksheet["A1"].border = Border(left=thick, top=thick, right=thick)
+    worksheet["A2"].border = Border(left=thick, bottom=thick, right=thick)
+    worksheet["C1"].font = title_content_font 
+    worksheet["C2"].font = title_content_font
+    worksheet["C1"].fill = dark_grey_fill 
+    worksheet["C2"].fill = dark_grey_fill
+    worksheet["C1"].alignment = title_content_alignment 
+    worksheet["C2"].alignment = title_content_alignment
+    worksheet["C1"].border = Border(left=thick, top=thick, right=thick)
+    worksheet["C2"].border = Border(left=thick, bottom=thick, right=thick)
+
+    columns: str = "ABCDE"
+    row: int = 4
+    coop_info_font = Font(size=12, bold=True)
+    coop_info_fill = PatternFill(fill_type="solid", start_color="AEEBAE", end_color="AEEBAE")
+    coop_info_border = Border(top=thick, bottom=thin)
+    content_font = Font(size=12)
+    right_aligned = Alignment(shrink_to_fit=True, horizontal="right")
+    left_aligned = Alignment(shrink_to_fit=True, horizontal="left")
+
+    while row <= last_row:
+        current_cell = worksheet[f"A{row}"]
+        if current_cell.value in coops:
+            for column in columns[:3]:
+                current_cell = worksheet[f"{column}{row}"]
+                current_cell.font = coop_info_font
+                current_cell.fill = coop_info_fill
+                current_cell.border = coop_info_border
+                current_cell.alignment = left_aligned
+            current_cell.value = f'=HYPERLINK("{current_cell.value}")'
+        elif current_cell.value == "Name":
+            for column in columns:
+                current_cell = worksheet[f"{column}{row}"]
+                current_cell.font = content_font
+                current_cell.fill = grey_fill
+                if column not in columns[:3]:
+                    current_cell.alignment = right_aligned
+                else:
+                    current_cell.alignment = left_aligned
+        elif current_cell.value != None: 
+            for column in columns:
+                current_cell = worksheet[f"{column}{row}"]           
+                current_cell.font = content_font
+                if column not in columns[:3]:
+                    current_cell.alignment = right_aligned
+                else:
+                    current_cell.alignment = left_aligned
+        else:
+            for column in columns:
+                current_cell = worksheet[f"{column}{row}"]              
+
+        row += 1
+
+    print("done")       
+
 
 def coop_list(coop: str) -> str:
     coops: dict = {
