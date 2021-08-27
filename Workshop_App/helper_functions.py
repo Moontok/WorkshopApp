@@ -1,6 +1,6 @@
-import csv
 import os
 from openpyxl import Workbook
+from openpyxl.styles import Font
 from gui_window import GuiWindow
 from PyQt5.QtWidgets import QFileDialog, QMainWindow
 from workshops import WorkshopsTool
@@ -177,8 +177,7 @@ def setup_workshop_information_text(ui: GuiWindow, display_text: str, workshops:
 def export_workshops_info(ui: GuiWindow, ws: WorkshopsTool) -> str:
     """Returns a selected directory."""
 
-    file_name: str = "workshop_info.csv"
-    # file_name: str = "workshop_info.xlsx"
+    file_name: str = "workshop_info.xlsx"
     base_directory: str = str(QFileDialog.getExistingDirectory(None, "Select Directory"))
 
     file_path: str = os.path.join(base_directory, file_name)
@@ -187,24 +186,78 @@ def export_workshops_info(ui: GuiWindow, ws: WorkshopsTool) -> str:
 
     workshops: list = get_workshops(ui, ws)
 
-    # button_check: bool = check_button_options(ui)
+    workbook = Workbook()
+    workbook["Sheet"].title = "Workshops"
 
-    # workbook = Workbook()
-    # workbook["Sheet"].title = "Workshops"
-
-    # workshops_sheet = workbook.active
-    # emails_sheet = workbook.create_sheet("Emails")
+    workshops_sheet = workbook.active
+    attendance_sheet = workbook.create_sheet("Attendance")
+    attendance_sheet.append(["TRAINING NAME"])
+    attendance_sheet.append(["TRAINING DATES"])
+    attendance_sheet.append([])
+    attendance_sheet.append(["COOP", "Name", "Email", "District", "Hours", "Dates", "Attended"])
     
-    # workshops_sheet["A1"] = "test"
-    # emails_sheet["A1"] = "test2"
+    for workshop in workshops:
+        coop_part: str = ""
+        for letter in workshop[2]:
+            if letter.isalpha():
+                coop_part += letter
+            else:
+                if len(coop_part) == 0:
+                    coop_part = "DeQueen_Mena"
+                break
 
-    # workbook.save(filename=file_path)
+        row = workshop[1:6]
+        row.append(coop_list(coop_part))
+        row.append(workshop[6])
 
-    with open(file_path, "w") as workshop_file:
-        workshop_writer = csv.writer(workshop_file, delimiter=",", quotechar='"', quoting=csv.QUOTE_MINIMAL, lineterminator = '\n')
+        workshops_sheet.append(row)
+        
+        sheet = workbook.create_sheet(coop_part)        
+        sheet.append(row)
 
-        for workshop in workshops:
-            workshop_writer.writerow(workshop[1:7])
+        if len(workshop[7]) > 0:
+            for partipant in workshop[7]:
+                attendance_row: list = list(partipant)
+                attendance_row.insert(0, coop_part)
+                attendance_sheet.append(attendance_row)
+                sheet.append(list(partipant))
+
+    
+    format_sheet(attendance_sheet)
+
+    workbook.save(filename=file_path)
+
+
+def format_sheet(worksheet) -> None:
+
+    worksheet["A1"].font = Font(size=14, bold=True, italic=True, color="FF0000")    
+    worksheet["B1"].font = Font(size=14, bold=True, color="FF0000")
+
+    for column in "ABCDEFG":
+        worksheet[f"{column}4"].font = Font(size=14, bold=True)
+
+def coop_list(coop: str) -> str:
+    coops: dict = {
+        "AFESC":"Session Link for Arch Ford ESC Area Educators",
+        "ARESC":"Session Link for Arkansas River ESC Area Educators",
+        "CRESC":"Session Link for Crowley’s Ridge ESC Area Educators",
+        "DSC":"Session Link for Dawson ESC Area Educators",
+        "DeQueen_Mena":"Session Link for DeQueen/Mena ESC Area Educators",
+        "GREC":"Session Link for Great Rivers ESC Area Educators",
+        "GFESC":"Session Link for Guy Fenter ESC Area Educators",
+        "NAESC":"Session Link for Northcentral ESC Area Educators",
+        "NEA":"Session Link for Northeast ESC Area Educators",
+        "NWAESC":"Session Link for Northwest ESC Area Educators",
+        "OUR":"Session Link for O.U.R. ESC Area Educators",
+        "SCSC":"Session Link for Southcentral ESC Area Educators",
+        "SE":"Session Link for Southeast ESC Area Educators",
+        "SWAEC":"Session Link for Southwest ESC Area Educators",
+        "WDMESC":"Session Link for Wilbur ESC Area Educators"
+    }
+
+    coop_match = coops.get(coop, "???Location???")
+
+    return coop_match
 
     
 if __name__ == '__main__':
