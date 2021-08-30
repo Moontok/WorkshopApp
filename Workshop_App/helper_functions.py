@@ -216,7 +216,7 @@ def export_workshops_info(ui: GuiWindow, ws: WorkshopsTool) -> None:
         sheet = workbook.create_sheet(row[0])        
         sheet.append(row[:8])
 
-        attendance_sheet.append([row[0], row[2], row[7]])
+        attendance_sheet.append([row[0], row[1], row[7]])
         current_row = attendance_sheet._current_row
         attendance_sheet.merge_cells(f"C{current_row}:E{current_row}")
         co_op_abbreviations.append(row[0])
@@ -262,7 +262,8 @@ def build_row_for_workshop(co_op_session_location, workshop):
 
 
 def format_sheet(worksheet, last_row: int, coops: list) -> None:    
-            
+    """Formats excel spreadsheet for export."""
+    
     worksheet.column_dimensions["A"].width = 40
     worksheet.column_dimensions["B"].width = 40
     worksheet.column_dimensions["C"].width = 40
