@@ -2,8 +2,9 @@ import os
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Side, Fill
 from openpyxl.styles.borders import Border
-from gui_window import GuiWindow
 from PyQt5.QtWidgets import QFileDialog, QMainWindow
+from json import load
+from gui_window import GuiWindow
 from workshops import WorkshopsTool
 
 
@@ -176,7 +177,7 @@ def setup_workshop_information_text(ui: GuiWindow, display_text: str, workshops:
     return display_text
 
 def export_workshops_info(ui: GuiWindow, ws: WorkshopsTool) -> str:
-    """Returns a selected directory."""
+    """Exports the searched workshop information to an .xlsx file."""
 
     file_name: str = "workshop_info.xlsx"
     base_directory: str = str(QFileDialog.getExistingDirectory(None, "Select Directory"))
@@ -203,35 +204,31 @@ def export_workshops_info(ui: GuiWindow, ws: WorkshopsTool) -> str:
     attendance_sheet["C2"] = "<DATES_HERE>"
     attendance_sheet.append([])
 
-    coops = []
+    co_op_abbreviations = list()
+    co_op_session_location: dict = get_co_op_session_locations()
+
+    workshop_rows = list()
 
     for workshop in workshops:
-        coop_part: str = ""
-        for letter in workshop[2]:
-            if letter.isalpha():
-                coop_part += letter
-            else:
-                if len(coop_part) == 0:
-                    coop_part = "DeQueen_Mena"
-                break
-        
-        row = workshop[1:6]
-        row.append(coop_list(coop_part))
-        row.append(workshop[6])
+        row: list = build_row_for_workshop(co_op_session_location, workshop)
+        workshop_rows.append(row)
 
-        workshops_sheet.append(row)
-        
-        sheet = workbook.create_sheet(coop_part)        
-        sheet.append(row)
+    workshop_rows.sort()
 
-        attendance_sheet.append([coop_part, workshop[1], workshop[6]])
+    for row in workshop_rows:
+        workshops_sheet.append(row[:8])
+        
+        sheet = workbook.create_sheet(row[0])        
+        sheet.append(row[:8])
+
+        attendance_sheet.append([row[0], row[2], row[7]])
         current_row = attendance_sheet._current_row
         attendance_sheet.merge_cells(f"C{current_row}:E{current_row}")
-        coops.append(coop_part)
+        co_op_abbreviations.append(row[0])
         attendance_sheet.append(["Name", "Email", "District", "Hours", "Dates Attended"])
 
-        if len(workshop[7]) > 0:
-            for partipant in workshop[7]:
+        if len(row[8]) > 0:
+            for partipant in row[8]:
                 sheet.append(list(partipant))
 
                 attendance_row: list = list(partipant)
@@ -240,9 +237,25 @@ def export_workshops_info(ui: GuiWindow, ws: WorkshopsTool) -> str:
         attendance_sheet.append([])
 
     attendance_sheet_last_row: int = attendance_sheet._current_row
-    format_sheet(attendance_sheet, attendance_sheet_last_row, coops)
+    format_sheet(attendance_sheet, attendance_sheet_last_row, co_op_abbreviations)
 
     workbook.save(filename=file_path)
+
+def build_row_for_workshop(co_op_session_location, workshop):
+    co_op_part: str = ""
+    for letter in workshop[2]:
+        if letter.isalpha():
+            co_op_part += letter
+        else:
+            if len(co_op_part) == 0:
+                co_op_part = "DeQueen_Mena"
+            break
+    
+    row = [co_op_part]
+    row.extend(workshop[1:])
+    row.insert(6, co_op_session_location.get(co_op_part, "???Location???"))
+
+    return row
 
 
 def format_sheet(worksheet, last_row: int, coops: list) -> None:    
@@ -323,28 +336,11 @@ def format_sheet(worksheet, last_row: int, coops: list) -> None:
     print("done")       
 
 
-def coop_list(coop: str) -> str:
-    coops: dict = {
-        "AFESC":"Session Link for Arch Ford ESC Area Educators",
-        "ARESC":"Session Link for Arkansas River ESC Area Educators",
-        "CRESC":"Session Link for Crowley’s Ridge ESC Area Educators",
-        "DSC":"Session Link for Dawson ESC Area Educators",
-        "DeQueen_Mena":"Session Link for DeQueen/Mena ESC Area Educators",
-        "GREC":"Session Link for Great Rivers ESC Area Educators",
-        "GFESC":"Session Link for Guy Fenter ESC Area Educators",
-        "NAESC":"Session Link for Northcentral ESC Area Educators",
-        "NEA":"Session Link for Northeast ESC Area Educators",
-        "NWAESC":"Session Link for Northwest ESC Area Educators",
-        "OUR":"Session Link for O.U.R. ESC Area Educators",
-        "SCSC":"Session Link for Southcentral ESC Area Educators",
-        "SE":"Session Link for Southeast ESC Area Educators",
-        "SWAEC":"Session Link for Southwest ESC Area Educators",
-        "WDMESC":"Session Link for Wilbur ESC Area Educators"
-    }
+def get_co_op_session_locations() -> dict:
+    """Load and get the Session Location information from the co_op_names.json file."""
 
-    coop_match = coops.get(coop, "???Location???")
-
-    return coop_match
+    with open("co_op_names.json", "r") as f:
+        return load(f)
 
     
 if __name__ == '__main__':
