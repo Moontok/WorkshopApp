@@ -1,0 +1,5 @@
+TODO:
+
+- Only export after a Search
+- Strip workshop name
+- Strip workshop dates

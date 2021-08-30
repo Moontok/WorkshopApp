@@ -115,7 +115,8 @@ class WorkshopsTool:
         self.number_of_workshops: int = 0
         self.number_of_participants: int = 0
         self.search_phrase: str = ""
-        self.connector: ConnectionTool = ConnectionTool()
+        self.connector = ConnectionTool()
+        self.searched_workshops = list()
 
 
     def setup_workshop_information(self) -> None:
@@ -191,6 +192,11 @@ class WorkshopsTool:
         return self.number_of_participants
 
 
+    def get_last_search_phrase(self) -> str:
+        """Returns the last thing searched. """
+        return self.search_phrase
+
+
     def get_emails(self, workshops: list) -> str:
         """Returns a string of emails in a copy and past format for emailing participants."""
 
@@ -213,25 +219,28 @@ class WorkshopsTool:
 
     def get_matching_workshops(self) -> list:
         """Return a list of workshops that are matching the current search phrase."""
+        
+        self.clear_searched_workshops()
 
         with WorkshopDatabase() as ws_db:
-            workshops = list()
             self.number_of_participants = 0
 
             for workshop in ws_db.get_all_workshops():
                 if search(self.search_phrase.lower(), workshop[2].lower()) != None:
                     workshop: list = list(workshop)
                     workshop.append(self.make_participant_list(ws_db, workshop))
-                    workshops.append(workshop)
+                    self.searched_workshops.append(workshop)
                     self.number_of_participants += int(workshop[4])
 
-        self.number_of_workshops = len(workshops)
+        self.number_of_workshops = len(self.searched_workshops)
 
-        return workshops
+        return self.searched_workshops
 
 
     def get_matching_workshops_by_date_range(self, start_date: tuple, end_date: tuple) -> list:
         """Returns al ist of matching workshops base on a provided date range."""
+
+        self.clear_searched_workshops()
 
         # Get all workshops that match the entered search phrase.
         workshops_to_check: list = self.get_matching_workshops()
@@ -239,18 +248,17 @@ class WorkshopsTool:
         searching_start_date: datetime = datetime(*start_date[:3])
         searching_end_date: datetime = datetime(*end_date[:3])
 
-        workshops = list()
         self.number_of_participants = 0
         
         for workshop in workshops_to_check:
             workshop_start_date: datetime = datetime.strptime(workshop[3], "%m/%d/%Y %I:%M %p")            
 
             if workshop_start_date >= searching_start_date and workshop_start_date <= searching_end_date:
-                workshops.append(workshop)
+                self.workshops.append(workshop)
                 self.number_of_participants += int(workshop[4])
 
-        self.number_of_workshops = len(workshops)
-        return workshops
+        self.number_of_workshops = len(self.workshops)
+        return self.workshops
 
 
     def get_matching_workshops_by_id(self, search_workshop_id: str) -> list:
@@ -259,8 +267,9 @@ class WorkshopsTool:
         This will take priority over phrase or date search.
         """
 
+        self.clear_searched_workshops()
+
         with WorkshopDatabase() as ws_db:
-            workshops = list()
             self.number_of_participants = 0
 
             for workshop in ws_db.get_all_workshops():
@@ -268,14 +277,20 @@ class WorkshopsTool:
                     workshop = list(workshop)
                     workshop.append(self.make_participant_list(ws_db, workshop))
 
-                    workshops.append(workshop)
+                    self.workshops.append(workshop)
                     self.number_of_participants = int(workshop[4])
                     self.number_of_workshops = 1
 
-                    return workshops
+                    return self.workshops
 
         self.number_of_workshops = 0
-        return workshops
+        return self.workshops
+
+
+    def get_most_recent_search_results(self) -> list:
+        """Return the most recent workshop search results."""
+        
+        return self.searched_workshops
 
 
     def set_search_phrase(self, phrase: str) -> None:
@@ -286,6 +301,12 @@ class WorkshopsTool:
             phrase: str = phrase.replace(symbol, f"\\{symbol}")
 
         self.search_phrase = phrase
+
+
+    def clear_searched_workshops(self) -> None:
+        """Clear out all workshops from previous search."""
+
+        self.searched_workshops = list()
 
 
     def make_participant_list(self, ws_db: WorkshopDatabase, workshop: list) -> list:

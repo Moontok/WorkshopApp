@@ -1,3 +1,0 @@
-TODO: Bugs to Fix
-
-1. Canceling export generates file to base directory. Doesn't cancel.

@@ -176,17 +176,12 @@ def setup_workshop_information_text(ui: GuiWindow, display_text: str, workshops:
 
     return display_text
 
-def export_workshops_info(ui: GuiWindow, ws: WorkshopsTool) -> str:
+def export_workshops_info(ui: GuiWindow, ws: WorkshopsTool) -> None:
     """Exports the searched workshop information to an .xlsx file."""
-
-    file_name: str = "workshop_info.xlsx"
-    base_directory: str = str(QFileDialog.getExistingDirectory(None, "Select Directory"))
-
-    file_path: str = os.path.join(base_directory, file_name)
 
     ws.set_search_phrase(ui.lineEditPhrase.text())
 
-    workshops: list = get_workshops(ui, ws)
+    workshops: list = ws.get_most_recent_search_results()
 
     workbook = Workbook()
     workbook["Sheet"].title = "Workshops"
@@ -239,9 +234,18 @@ def export_workshops_info(ui: GuiWindow, ws: WorkshopsTool) -> str:
     attendance_sheet_last_row: int = attendance_sheet._current_row
     format_sheet(attendance_sheet, attendance_sheet_last_row, co_op_abbreviations)
 
-    workbook.save(filename=file_path)
+    file_path = os.path.join(os.path.dirname(__file__), "workshop_info.xlsx")
+    print(file_path)
+
+    save_file_info: str = QFileDialog().getSaveFileName(None, directory="workshop_info.xlsx", filter="Excel files (*.xlsx)")[0]
+
+    # Only save file if the user provided a name and didn't cancel.
+    if save_file_info != "":
+        workbook.save(filename=save_file_info)
 
 def build_row_for_workshop(co_op_session_location, workshop):
+    """Build out the contents of one spread sheet row entry. """
+
     co_op_part: str = ""
     for letter in workshop[2]:
         if letter.isalpha():
