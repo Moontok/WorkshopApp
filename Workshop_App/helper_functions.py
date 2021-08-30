@@ -19,7 +19,7 @@ def generate_workshop_info(ui: GuiWindow, ws: WorkshopsTool) -> None:
 
     button_check: bool = check_button_options(ui)
 
-    text_to_display: str = get_workshop_display_text(ui, ws, workshops, button_check)
+    text_to_display: str = get_workshop_display_text(ui, ws, button_check)
 
     ui.textOutputField.clear()
     ui.textOutputField.insertPlainText(text_to_display)
@@ -70,15 +70,15 @@ def update_database(main_window: QMainWindow, ws: WorkshopsTool, ui: GuiWindow) 
     main_window.repaint()
 
 
-def get_workshop_display_text(ui: GuiWindow, ws: WorkshopsTool, workshops: list, button_check: bool) -> str:
+def get_workshop_display_text(ui: GuiWindow, ws: WorkshopsTool, button_check: bool) -> str:
     display_text = list()
     display_text.append(f"Number of matching workshops: {ws.get_number_of_workshops()}\n\n")
     display_text.append(f"Total Signed Up: {ws.get_number_of_participants()}\n\n")
 
     if button_check:
-        display_text = setup_workshop_information_text(ui, display_text, workshops)
+        display_text = setup_workshop_information_text(ui, display_text, ws)
 
-    display_text.append(f"All emails for these workshops:\n\n{ws.get_emails(workshops)}")
+    display_text.append(f"All emails for these workshops:\n\n{ws.get_emails()}")
     
     return "".join(display_text)
 
@@ -127,7 +127,7 @@ def get_missing_file_text() -> str:
     return missing_file_text
 
 
-def setup_workshop_information_text(ui: GuiWindow, display_text: str, workshops: list) -> str:
+def setup_workshop_information_text(ui: GuiWindow, display_text: str, ws: WorkshopsTool) -> str:
     """
     Prepare the output of the workshops based on selected information.
 
@@ -136,7 +136,7 @@ def setup_workshop_information_text(ui: GuiWindow, display_text: str, workshops:
     participantInfoList [name, email, school]
     """
 
-    for workshop in workshops:
+    for workshop in ws.get_most_recent_search_results():
         text = list()
         if ui.checkBoxWsID.isChecked():
             text.append(f"{workshop[1]}")
@@ -235,7 +235,6 @@ def export_workshops_info(ui: GuiWindow, ws: WorkshopsTool) -> None:
     format_sheet(attendance_sheet, attendance_sheet_last_row, co_op_abbreviations)
 
     file_path = os.path.join(os.path.dirname(__file__), "workshop_info.xlsx")
-    print(file_path)
 
     save_file_info: str = QFileDialog().getSaveFileName(None, directory="workshop_info.xlsx", filter="Excel files (*.xlsx)")[0]
 
@@ -335,9 +334,7 @@ def format_sheet(worksheet, last_row: int, coops: list) -> None:
             for column in columns:
                 current_cell = worksheet[f"{column}{row}"]              
 
-        row += 1
-
-    print("done")       
+        row += 1      
 
 
 def get_co_op_session_locations() -> dict:

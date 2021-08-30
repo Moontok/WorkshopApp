@@ -197,12 +197,12 @@ class WorkshopsTool:
         return self.search_phrase
 
 
-    def get_emails(self, workshops: list) -> str:
+    def get_emails(self) -> str:
         """Returns a string of emails in a copy and past format for emailing participants."""
 
         emails = list()
 
-        for workshop in workshops:
+        for workshop in self.searched_workshops:
             # Check if there is participant information in the workshop.
             if workshop[7] != []:
                 for participant in workshop[7]:
@@ -254,11 +254,11 @@ class WorkshopsTool:
             workshop_start_date: datetime = datetime.strptime(workshop[3], "%m/%d/%Y %I:%M %p")            
 
             if workshop_start_date >= searching_start_date and workshop_start_date <= searching_end_date:
-                self.workshops.append(workshop)
+                self.search_workshops.append(workshop)
                 self.number_of_participants += int(workshop[4])
 
-        self.number_of_workshops = len(self.workshops)
-        return self.workshops
+        self.number_of_workshops = len(self.search_workshops)
+        return self.search_workshops
 
 
     def get_matching_workshops_by_id(self, search_workshop_id: str) -> list:
@@ -277,19 +277,19 @@ class WorkshopsTool:
                     workshop = list(workshop)
                     workshop.append(self.make_participant_list(ws_db, workshop))
 
-                    self.workshops.append(workshop)
+                    self.search_workshops.append(workshop)
                     self.number_of_participants = int(workshop[4])
                     self.number_of_workshops = 1
 
-                    return self.workshops
+                    return self.search_workshops
 
         self.number_of_workshops = 0
-        return self.workshops
+        return self.search_workshops
 
 
     def get_most_recent_search_results(self) -> list:
         """Return the most recent workshop search results."""
-        
+
         return self.searched_workshops
 
 
