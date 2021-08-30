@@ -13,9 +13,8 @@ def generate_workshop_info(ui: GuiWindow, ws: WorkshopsTool) -> None:
 
     ui.textOutputField.clear()
     ws.set_search_phrase(ui.lineEditPhrase.text())
-    workshops = list()
 
-    workshops = get_workshops(ui, ws)
+    update_searched_workshops(ui, ws)
 
     button_check: bool = check_button_options(ui)
 
@@ -25,7 +24,7 @@ def generate_workshop_info(ui: GuiWindow, ws: WorkshopsTool) -> None:
     ui.textOutputField.insertPlainText(text_to_display)
 
 
-def get_workshops(ui: GuiWindow, ws: WorkshopsTool) -> list:
+def update_searched_workshops(ui: GuiWindow, ws: WorkshopsTool) -> list:
     """Return the correct workshops based on selected options."""
 
     if ui.lineEditWorkshopID.text() != "":
@@ -242,7 +241,7 @@ def export_workshops_info(ui: GuiWindow, ws: WorkshopsTool) -> None:
     if save_file_info != "":
         workbook.save(filename=save_file_info)
 
-def build_row_for_workshop(co_op_session_location, workshop):
+def build_row_for_workshop(co_op_session_location: dict, workshop: list) -> list:
     """Build out the contents of one spread sheet row entry. """
 
     co_op_part: str = ""

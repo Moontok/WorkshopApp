@@ -71,6 +71,7 @@ class WorkshopDatabase:
         """Return all workshops in database for testing purposes."""
 
         workshops = list()
+        workshops_dict = dict()
 
         try:
             for workshop in self.c.execute("SELECT * FROM workshops"):
@@ -80,6 +81,20 @@ class WorkshopDatabase:
 
         return workshops
 
+    def make_workshop_dict(self, workshop_info: tuple) -> dict:
+        workshop = dict()
+
+        workshop["workshop_id"] = workshop_info[1]
+        workshop["workshop_name"] = workshop_info[2]
+        workshop["workshop_start_date_and_time"] = workshop_info[3]
+        workshop["workshop_signed_up"] = workshop_info[4]
+        workshop["workshop_participant_capacity"] = workshop_info[5]
+        workshop["workshop_url"] = workshop_info[6]
+        workshop["workshop_participant_info_list"] = self.get_participant_info(workshop["workshop_id"])
+
+        return workshop
+
+
 
     def get_participant_info(self, workshop_id: str):
         """Retrieve the partipant information that corresponds to the ID."""
@@ -87,6 +102,12 @@ class WorkshopDatabase:
             "SELECT name, email, school FROM participant_information WHERE workshop_id = ?",
             (workshop_id,),
         )
+
+
+    def get_participant_list(self, workshop_id: str) -> list:
+        """Return a list of all participants for selected workshop."""
+
+        return [p for p in self.get_participant_info(workshop_id)]
 
 
     def drop_tables(self):

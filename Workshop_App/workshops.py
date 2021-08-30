@@ -117,6 +117,7 @@ class WorkshopsTool:
         self.search_phrase: str = ""
         self.connector = ConnectionTool()
         self.searched_workshops = list()
+        self.workshops_dict = dict()
 
 
     def setup_workshop_information(self) -> None:
@@ -220,7 +221,8 @@ class WorkshopsTool:
     def get_matching_workshops(self) -> list:
         """Return a list of workshops that are matching the current search phrase."""
         
-        self.clear_searched_workshops()
+        self.searched_workshops.clear()
+        self.workshops_dict.clear()
 
         with WorkshopDatabase() as ws_db:
             self.number_of_participants = 0
@@ -228,7 +230,7 @@ class WorkshopsTool:
             for workshop in ws_db.get_all_workshops():
                 if search(self.search_phrase.lower(), workshop[2].lower()) != None:
                     workshop: list = list(workshop)
-                    workshop.append(self.make_participant_list(ws_db, workshop))
+                    workshop.append(ws_db.get_participant_list(workshop[1]))
                     self.searched_workshops.append(workshop)
                     self.number_of_participants += int(workshop[4])
 
@@ -240,11 +242,10 @@ class WorkshopsTool:
     def get_matching_workshops_by_date_range(self, start_date: tuple, end_date: tuple) -> list:
         """Returns al ist of matching workshops base on a provided date range."""
 
-        self.clear_searched_workshops()
+        # Get a copy of all workshops that match the entered search phrase.
+        workshops_to_check: list = self.get_matching_workshops()[:]
+        self.searched_workshops.clear()
 
-        # Get all workshops that match the entered search phrase.
-        workshops_to_check: list = self.get_matching_workshops()
-        
         searching_start_date: datetime = datetime(*start_date[:3])
         searching_end_date: datetime = datetime(*end_date[:3])
 
@@ -254,11 +255,11 @@ class WorkshopsTool:
             workshop_start_date: datetime = datetime.strptime(workshop[3], "%m/%d/%Y %I:%M %p")            
 
             if workshop_start_date >= searching_start_date and workshop_start_date <= searching_end_date:
-                self.search_workshops.append(workshop)
+                self.searched_workshops.append(workshop)
                 self.number_of_participants += int(workshop[4])
 
-        self.number_of_workshops = len(self.search_workshops)
-        return self.search_workshops
+        self.number_of_workshops = len(self.searched_workshops)
+        return self.searched_workshops
 
 
     def get_matching_workshops_by_id(self, search_workshop_id: str) -> list:
@@ -267,7 +268,7 @@ class WorkshopsTool:
         This will take priority over phrase or date search.
         """
 
-        self.clear_searched_workshops()
+        self.searched_workshops.clear()
 
         with WorkshopDatabase() as ws_db:
             self.number_of_participants = 0
@@ -275,13 +276,13 @@ class WorkshopsTool:
             for workshop in ws_db.get_all_workshops():
                 if search_workshop_id == workshop[1]:
                     workshop = list(workshop)
-                    workshop.append(self.make_participant_list(ws_db, workshop))
+                    workshop.append(ws_db.get_participant_list(workshop[1]))
 
-                    self.search_workshops.append(workshop)
+                    self.searched_workshops.append(workshop)
                     self.number_of_participants = int(workshop[4])
                     self.number_of_workshops = 1
 
-                    return self.search_workshops
+                    return self.searched_workshops
 
         self.number_of_workshops = 0
         return self.search_workshops
@@ -303,16 +304,10 @@ class WorkshopsTool:
         self.search_phrase = phrase
 
 
-    def clear_searched_workshops(self) -> None:
-        """Clear out all workshops from previous search."""
+    # def make_participant_list(self, ws_db: WorkshopDatabase, workshop: list) -> list:
+    #     """Return a list of all participants for selected workshop."""
 
-        self.searched_workshops = list()
-
-
-    def make_participant_list(self, ws_db: WorkshopDatabase, workshop: list) -> list:
-        """Return a list of all participants for selected workshop."""
-
-        return [p for p in ws_db.get_participant_info(workshop[1])]
+    #     return [p for p in ws_db.get_participant_info(workshop[1])]
 
 
 if __name__ == "__main__":
