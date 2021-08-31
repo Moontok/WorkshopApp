@@ -23,7 +23,8 @@ class WorkshopDatabase:
                     workshop_start_date_and_time TEXT NOT NULL,
                     workshop_signed_up TEXT NOT NULL,
                     workshop_participant_capacity TEXT NOT NULL,
-                    workshop_url TEXT NOT NULL
+                    workshop_url TEXT NOT NULL,
+                    workshop_location TEXT NOT NULL
                     );"""
         )
 
@@ -42,7 +43,7 @@ class WorkshopDatabase:
         """Add a single workshop to database."""
 
         self.c.execute(
-            "INSERT INTO workshops (workshop_id, workshop_name, workshop_start_date_and_time, workshop_signed_up, workshop_participant_capacity, workshop_url) VALUES (?,?,?,?,?,?)",
+            "INSERT INTO workshops (workshop_id, workshop_name, workshop_start_date_and_time, workshop_signed_up, workshop_participant_capacity, workshop_url, workshop_location) VALUES (?,?,?,?,?,?,?)",
             (
                 ws_info["workshop_id"],
                 ws_info["workshop_name"],
@@ -50,6 +51,7 @@ class WorkshopDatabase:
                 ws_info["workshop_signed_up"],
                 ws_info["workshop_participant_capacity"],
                 ws_info["workshop_url"],
+                ws_info["workshop_location"]
             ),
         )
 
@@ -84,6 +86,8 @@ class WorkshopDatabase:
         return workshops
 
     def make_workshop_dict(self, workshop_info: tuple) -> dict:
+        """Generate a dictionary containing workshop information."""
+
         workshop = dict()
 
         workshop["workshop_id"] = workshop_info[1]
@@ -92,9 +96,9 @@ class WorkshopDatabase:
         workshop["workshop_signed_up"] = workshop_info[4]
         workshop["workshop_participant_capacity"] = workshop_info[5]
         workshop["workshop_url"] = workshop_info[6]
+        workshop["workshop_location"] = workshop_info[7]
 
         return workshop
-
 
 
     def get_participant_info(self, workshop_id: str):

@@ -26,7 +26,7 @@ class WorkshopsTool:
         # ['Workshop Name', 'Workshop Date and Time', 'Workshop Enrollment']
         workshops_content = [x.text.split("\n") for x in list(workshops_content)[1:]]
 
-        workshops = list()
+        workshops = list()        
 
         for workshop_info in workshops_content:
             workshop = dict()
@@ -37,6 +37,7 @@ class WorkshopsTool:
             workshop["workshop_signed_up"] = workshop_info[2].split(" / ")[0]
             workshop["workshop_participant_capacity"] = workshop_info[2].split(" / ")[1]
             workshop["workshop_url"] = f'{self.connector.get_connection_info_for("base_workshop_url")}{workshop["workshop_id"]}'
+            workshop["workshop_location"] = self.get_location(workshop["workshop_url"])
             workshop["workshop_participant_info_list"] = self.construct_participant_info(workshop["workshop_id"])
             workshops.append(workshop)
     
@@ -44,6 +45,10 @@ class WorkshopsTool:
         self.construct_workshop_database(workshops)
         self.connector.close_session()
 
+
+    def get_location(self, workshop_url: str) -> str:
+        """Get location of the workshop."""
+        return self.connector.get_location_page(workshop_url)[8].text
 
     def construct_participant_info(self, id: str) -> dict:
         """

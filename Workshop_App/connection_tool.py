@@ -1,5 +1,6 @@
 # Module to handle connecting and scraping webpages.
 
+
 from requests_html import Element, HTMLSession, HTMLResponse
 from os import chdir
 from pathlib import Path
@@ -32,6 +33,12 @@ class ConnectionTool:
         page_content: HTMLResponse = self.session.get(self.connection_info["instructor_page_url"])
         return page_content.html.find("table.mainBody tr")
 
+
+    def get_location_page(self, session_url: str) -> list:
+
+
+        page_content: HTMLResponse = self.session.get(session_url)
+        return list(page_content.html.find("table.mainBody tr td"))
 
     def get_participant_page(self, id: str) -> list:
         """Scrapes the participant information for a target workshop based in provided ID."""

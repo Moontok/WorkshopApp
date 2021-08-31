@@ -8,7 +8,7 @@
 import sys
 import helper_functions
 from PyQt5.QtWidgets import QApplication, QMainWindow
-from workshops import WorkshopsTool
+from workshop_tool import WorkshopsTool
 from gui_window import GuiWindow
 from splash_screen import SplashScreen
 

@@ -5,7 +5,7 @@ from openpyxl.styles.borders import Border
 from PyQt5.QtWidgets import QFileDialog, QMainWindow
 from json import load
 from gui_window import GuiWindow
-from workshops import WorkshopsTool
+from workshop_tool import WorkshopsTool
 
 
 def generate_workshop_info(ui: GuiWindow, ws: WorkshopsTool) -> None:
@@ -229,30 +229,28 @@ def export_workshops_info(ui: GuiWindow, ws: WorkshopsTool) -> None:
 
     save_file_info: str = QFileDialog().getSaveFileName(None, directory="workshop_info.xlsx", filter="Excel files (*.xlsx)")[0]
 
-    # Only save file if the user provided a name and didn't cancel.
+    # Only save file if the user provided a file name and didn't cancel.
     if save_file_info != "":
         workbook.save(filename=save_file_info)
 
+
+def get_potential_name(ws: list) -> str:
+    return ws[0]["workshop_name"]
+
+
 def build_row_for_workshop(co_op_session_location: dict, workshop: dict) -> list:
     """Build out the contents of one spread sheet row entry. """
-
-    co_op_part: str = ""
-    for letter in workshop["workshop_name"]:
-        if letter.isalpha():
-            co_op_part += letter
-        else:
-            if len(co_op_part) == 0:
-                co_op_part = "DeQueen_Mena"
-            break
     
+    location: list = workshop["workshop_location"].split(" - ")[0]
+
     row = [
-        co_op_part,
+        co_op_session_location[location]["abbr"],
         workshop["workshop_id"],
         workshop["workshop_name"],
         workshop["workshop_start_date_and_time"],
         workshop["workshop_signed_up"],
         workshop["workshop_participant_capacity"],
-        co_op_session_location.get(co_op_part, "???Location???"),
+        co_op_session_location[location]["pd_doc_text"],
         workshop["workshop_url"],
         workshop["workshop_participant_info_list"]
     ]

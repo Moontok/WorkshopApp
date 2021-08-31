@@ -5,7 +5,7 @@ This allows to extend the class with custom functionally and not worry about rec
 the workshopGUI from QT Designer.
 '''
 
-from workshops import WorkshopsTool
+from workshop_tool import WorkshopsTool
 from PyQt5.QtWidgets import QDialog, QMessageBox, QLineEdit, QMainWindow
 from login_dialog import Ui_LoginDialog
 from workshop_gui import Ui_MainWindow
