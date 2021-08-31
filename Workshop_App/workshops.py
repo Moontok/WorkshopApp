@@ -148,7 +148,7 @@ class WorkshopsTool:
         self.connector.close_session()
 
 
-    def construct_participant_info(self, id: str) -> list:
+    def construct_participant_info(self, id: str) -> dict:
         """
         Returns a list of dictionaries with each participant's name, email, and school or
         returns an empty list if no participants were found.
@@ -205,10 +205,10 @@ class WorkshopsTool:
 
         for workshop in self.searched_workshops:
             # Check if there is participant information in the workshop.
-            if workshop[7] != []:
-                for participant in workshop[7]:
+            if workshop["workshop_participant_info_list"] != []:
+                for participant in workshop["workshop_participant_info_list"]:
                     # Add provided email for this participant.
-                    emails.append(participant[1])
+                    emails.append(participant["email"])
 
         emails = ";\n".join(emails)
 
@@ -228,11 +228,9 @@ class WorkshopsTool:
             self.number_of_participants = 0
 
             for workshop in ws_db.get_all_workshops():
-                if search(self.search_phrase.lower(), workshop[2].lower()) != None:
-                    workshop: list = list(workshop)
-                    workshop.append(ws_db.get_participant_list(workshop[1]))
+                if search(self.search_phrase.lower(), workshop["workshop_name"].lower()) != None:
                     self.searched_workshops.append(workshop)
-                    self.number_of_participants += int(workshop[4])
+                    self.number_of_participants += int(workshop["workshop_signed_up"])
 
         self.number_of_workshops = len(self.searched_workshops)
 
@@ -252,11 +250,11 @@ class WorkshopsTool:
         self.number_of_participants = 0
         
         for workshop in workshops_to_check:
-            workshop_start_date: datetime = datetime.strptime(workshop[3], "%m/%d/%Y %I:%M %p")            
+            workshop_start_date: datetime = datetime.strptime(workshop["workshop_start_date_and_time"], "%m/%d/%Y %I:%M %p")            
 
             if workshop_start_date >= searching_start_date and workshop_start_date <= searching_end_date:
                 self.searched_workshops.append(workshop)
-                self.number_of_participants += int(workshop[4])
+                self.number_of_participants += int(workshop["workshop_signed_up"])
 
         self.number_of_workshops = len(self.searched_workshops)
         return self.searched_workshops
@@ -274,12 +272,9 @@ class WorkshopsTool:
             self.number_of_participants = 0
 
             for workshop in ws_db.get_all_workshops():
-                if search_workshop_id == workshop[1]:
-                    workshop = list(workshop)
-                    workshop.append(ws_db.get_participant_list(workshop[1]))
-
+                if search_workshop_id == workshop["workshop_id"]:
                     self.searched_workshops.append(workshop)
-                    self.number_of_participants = int(workshop[4])
+                    self.number_of_participants = int(workshop["workshop_signed_up"])
                     self.number_of_workshops = 1
 
                     return self.searched_workshops

@@ -71,13 +71,15 @@ class WorkshopDatabase:
         """Return all workshops in database for testing purposes."""
 
         workshops = list()
-        workshops_dict = dict()
 
         try:
             for workshop in self.c.execute("SELECT * FROM workshops"):
-                workshops.append(workshop)
+                workshops.append(self.make_workshop_dict(workshop))
         except OperationalError:
             print("No database located.")
+
+        for workshop in workshops:            
+            workshop["workshop_participant_info_list"] = list(self.get_participant_info(workshop["workshop_id"]))
 
         return workshops
 
@@ -90,7 +92,6 @@ class WorkshopDatabase:
         workshop["workshop_signed_up"] = workshop_info[4]
         workshop["workshop_participant_capacity"] = workshop_info[5]
         workshop["workshop_url"] = workshop_info[6]
-        workshop["workshop_participant_info_list"] = self.get_participant_info(workshop["workshop_id"])
 
         return workshop
 
@@ -98,10 +99,21 @@ class WorkshopDatabase:
 
     def get_participant_info(self, workshop_id: str):
         """Retrieve the partipant information that corresponds to the ID."""
-        return self.c.execute(
+
+        participant_info = self.c.execute(
             "SELECT name, email, school FROM participant_information WHERE workshop_id = ?",
             (workshop_id,),
         )
+
+        participants = list()
+        for participant in participant_info:
+            participants.append({
+                self.c.description[0][0]: participant[0], 
+                self.c.description[1][0]: participant[1], 
+                self.c.description[2][0]: participant[2]
+            })
+
+        return participants
 
 
     def get_participant_list(self, workshop_id: str) -> list:

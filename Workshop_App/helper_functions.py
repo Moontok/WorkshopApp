@@ -127,26 +127,20 @@ def get_missing_file_text() -> str:
 
 
 def setup_workshop_information_text(ui: GuiWindow, display_text: str, ws: WorkshopsTool) -> str:
-    """
-    Prepare the output of the workshops based on selected information.
-
-    Useful information when using:
-    Workshop Structure: [id, workshopID, workshopName, workshopStartDateAndTime, workshopSignedUp, workshopParticipantCapacity, workshopURL, [participantInfoList]]
-    participantInfoList [name, email, school]
-    """
+    """Prepare the output of the workshops based on selected information."""
 
     for workshop in ws.get_most_recent_search_results():
         text = list()
         if ui.checkBoxWsID.isChecked():
-            text.append(f"{workshop[1]}")
+            text.append(f"{workshop['workshop_id']}")
         if ui.checkBoxWsStartDate.isChecked():
-            text.append(f"{workshop[3]}")
+            text.append(f"{workshop['workshop_start_date_and_time']}")
         if ui.checkBoxWsPartNumbers.isChecked():
-            text.append(f"{workshop[4]}/{workshop[5]}")
+            text.append(f"{workshop['workshop_signed_up']}/{workshop['workshop_participant_capacity']}")
         if ui.checkBoxWsName.isChecked():
-            text.append(f"{workshop[2]}")
+            text.append(f"{workshop['workshop_name']}")
         if ui.checkBoxWsURL.isChecked():
-            text.append(f"\n   Url: {workshop[6]}")
+            text.append(f"\n   Url: {workshop['workshop_url']}")
 
         display_text.append(" - ".join(text))
         display_text.append("\n")
@@ -159,14 +153,14 @@ def setup_workshop_information_text(ui: GuiWindow, display_text: str, ws: Worksh
 
             display_text.append("   Contact Information:\n")
 
-            for participant_info in workshop[7]:
+            for participant_info in workshop["workshop_participant_info_list"]:
                 text = list()
                 if ui.checkBoxNames.isChecked():
-                    text.append(f"{participant_info[0]}")
+                    text.append(f'{participant_info["name"]}')
                 if ui.checkBoxEmails.isChecked():
-                    text.append(f"{participant_info[1]}")
+                    text.append(f'{participant_info["email"]}')
                 if ui.checkBoxSchools.isChecked():
-                    text.append(f"{participant_info[2]}")
+                    text.append(f'{participant_info["school"]}')
                 display_text.append("    + ")
                 display_text.append(" - ".join(text))
                 display_text.append("\n")
@@ -223,9 +217,9 @@ def export_workshops_info(ui: GuiWindow, ws: WorkshopsTool) -> None:
 
         if len(row[8]) > 0:
             for partipant in row[8]:
-                sheet.append(list(partipant))
+                sheet.append([partipant["name"], partipant["email"], partipant["school"]])
 
-                attendance_row: list = list(partipant)
+                attendance_row: list = [partipant["name"], partipant["email"], partipant["school"]]
                 attendance_sheet.append(attendance_row)
 
         attendance_sheet.append([])
@@ -233,19 +227,17 @@ def export_workshops_info(ui: GuiWindow, ws: WorkshopsTool) -> None:
     attendance_sheet_last_row: int = attendance_sheet._current_row
     format_sheet(attendance_sheet, attendance_sheet_last_row, co_op_abbreviations)
 
-    file_path = os.path.join(os.path.dirname(__file__), "workshop_info.xlsx")
-
     save_file_info: str = QFileDialog().getSaveFileName(None, directory="workshop_info.xlsx", filter="Excel files (*.xlsx)")[0]
 
     # Only save file if the user provided a name and didn't cancel.
     if save_file_info != "":
         workbook.save(filename=save_file_info)
 
-def build_row_for_workshop(co_op_session_location: dict, workshop: list) -> list:
+def build_row_for_workshop(co_op_session_location: dict, workshop: dict) -> list:
     """Build out the contents of one spread sheet row entry. """
 
     co_op_part: str = ""
-    for letter in workshop[2]:
+    for letter in workshop["workshop_name"]:
         if letter.isalpha():
             co_op_part += letter
         else:
@@ -253,9 +245,17 @@ def build_row_for_workshop(co_op_session_location: dict, workshop: list) -> list
                 co_op_part = "DeQueen_Mena"
             break
     
-    row = [co_op_part]
-    row.extend(workshop[1:])
-    row.insert(6, co_op_session_location.get(co_op_part, "???Location???"))
+    row = [
+        co_op_part,
+        workshop["workshop_id"],
+        workshop["workshop_name"],
+        workshop["workshop_start_date_and_time"],
+        workshop["workshop_signed_up"],
+        workshop["workshop_participant_capacity"],
+        co_op_session_location.get(co_op_part, "???Location???"),
+        workshop["workshop_url"],
+        workshop["workshop_participant_info_list"]
+    ]
 
     return row
 
