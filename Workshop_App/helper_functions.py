@@ -1,4 +1,5 @@
-import os
+
+from datetime import datetime
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Side, Fill
 from openpyxl.styles.borders import Border
@@ -186,10 +187,12 @@ def export_workshops_info(ui: GuiWindow, ws: WorkshopsTool) -> None:
     attendance_sheet.merge_cells("C1:E1")
     attendance_sheet.merge_cells("A2:B2")
     attendance_sheet.merge_cells("C2:E2")
-    attendance_sheet["A1"] = "Workshop Name:"
-    attendance_sheet["C1"] = "<NAME_HERE>"
+    attendance_sheet["A1"] = "Workshop Name:" 
+    # attendance_sheet["C1"] = "<NAME_HERE>"
+    attendance_sheet["C1"] = workshops[0]["workshop_name"]
     attendance_sheet["A2"] = "Workshop Dates:"
-    attendance_sheet["C2"] = "<DATES_HERE>"
+    # attendance_sheet["C2"] = "<DATES_HERE>"
+    attendance_sheet["C2"] = format_dates(workshops[0])
     attendance_sheet.append([])
 
     co_op_abbreviations = list()
@@ -234,8 +237,24 @@ def export_workshops_info(ui: GuiWindow, ws: WorkshopsTool) -> None:
         workbook.save(filename=save_file_info)
 
 
-def get_potential_name(ws: list) -> str:
-    return ws[0]["workshop_name"]
+def format_dates(workshop: dict) -> str:
+    """Formats all the dates."""
+    dates_text: str = ""
+    dates: list = [datetime.strptime(date, "%m/%d/%Y") for date in workshop["workshop_dates"].split("_")]
+    # dates: list = [print(date) for date in workshop["workshop_dates"].split("_")]
+    if len(dates) > 1:
+        for date in dates:
+            if dates_text == "":
+                dates_text = date.strftime("%b %d")
+            else:
+                dates_text = f'{dates_text}, {date.strftime("%b %d")}'
+    else:
+        dates_text = dates[0].strftime("%b %d")
+    dates_text = f'{dates_text} of {dates[-1].strftime("%Y")}'
+
+    return dates_text
+
+
 
 
 def build_row_for_workshop(co_op_session_location: dict, workshop: dict) -> list:

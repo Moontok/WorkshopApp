@@ -34,9 +34,9 @@ class ConnectionTool:
         return page_content.html.find("table.mainBody tr")
 
 
-    def get_location_page(self, session_url: str) -> list:
-
-
+    def get_session_page(self, session_url: str) -> list:
+        """Scrapes the session information page."""
+        
         page_content: HTMLResponse = self.session.get(session_url)
         return list(page_content.html.find("table.mainBody tr td"))
 

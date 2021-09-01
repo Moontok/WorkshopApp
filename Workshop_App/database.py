@@ -24,7 +24,8 @@ class WorkshopDatabase:
                     workshop_signed_up TEXT NOT NULL,
                     workshop_participant_capacity TEXT NOT NULL,
                     workshop_url TEXT NOT NULL,
-                    workshop_location TEXT NOT NULL
+                    workshop_location TEXT NOT NULL,
+                    workshop_dates TEXT NOT NULL
                     );"""
         )
 
@@ -43,7 +44,7 @@ class WorkshopDatabase:
         """Add a single workshop to database."""
 
         self.c.execute(
-            "INSERT INTO workshops (workshop_id, workshop_name, workshop_start_date_and_time, workshop_signed_up, workshop_participant_capacity, workshop_url, workshop_location) VALUES (?,?,?,?,?,?,?)",
+            "INSERT INTO workshops (workshop_id, workshop_name, workshop_start_date_and_time, workshop_signed_up, workshop_participant_capacity, workshop_url, workshop_location, workshop_dates) VALUES (?,?,?,?,?,?,?,?)",
             (
                 ws_info["workshop_id"],
                 ws_info["workshop_name"],
@@ -51,7 +52,8 @@ class WorkshopDatabase:
                 ws_info["workshop_signed_up"],
                 ws_info["workshop_participant_capacity"],
                 ws_info["workshop_url"],
-                ws_info["workshop_location"]
+                ws_info["workshop_location"],
+                ws_info["workshop_dates"]
             ),
         )
 
@@ -97,6 +99,7 @@ class WorkshopDatabase:
         workshop["workshop_participant_capacity"] = workshop_info[5]
         workshop["workshop_url"] = workshop_info[6]
         workshop["workshop_location"] = workshop_info[7]
+        workshop["workshop_dates"] = workshop_info[8]
 
         return workshop
 

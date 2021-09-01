@@ -37,8 +37,10 @@ class WorkshopsTool:
             workshop["workshop_signed_up"] = workshop_info[2].split(" / ")[0]
             workshop["workshop_participant_capacity"] = workshop_info[2].split(" / ")[1]
             workshop["workshop_url"] = f'{self.connector.get_connection_info_for("base_workshop_url")}{workshop["workshop_id"]}'
-            workshop["workshop_location"] = self.get_location(workshop["workshop_url"])
+            dates_and_location: dict = self.get_dates_and_location(workshop["workshop_url"])
+            workshop["workshop_location"] = dates_and_location["location"]
             workshop["workshop_participant_info_list"] = self.construct_participant_info(workshop["workshop_id"])
+            workshop["workshop_dates"] = dates_and_location["dates"]
             workshops.append(workshop)
     
         
@@ -46,9 +48,21 @@ class WorkshopsTool:
         self.connector.close_session()
 
 
-    def get_location(self, workshop_url: str) -> str:
+    def get_dates_and_location(self, workshop_url: str) -> str:
         """Get location of the workshop."""
-        return self.connector.get_location_page(workshop_url)[8].text
+        content: list = self.connector.get_session_page(workshop_url)
+        filtered_content: list = content[6:]
+        location: str = filtered_content[2].text
+        dates: str = ""
+        for index, element in enumerate(filtered_content):
+            
+            if index % 3 == 0:
+                if dates == "":
+                    dates = element.text
+                else:
+                    dates = f"{dates}_{element.text}"
+        
+        return {"location":location, "dates":dates}
 
     def construct_participant_info(self, id: str) -> dict:
         """
