@@ -64,7 +64,7 @@ class ExcelTool:
             sheet.append(["Credit:", row[12]])
             sheet.append(["Fee:", row[13]])
             sheet.append(["Description:", row[9]])
-            sheet.append([])
+            sheet.append(["Session Link:", row[7]])
             sheet.append(["Signed Up"])
 
             attendance_sheet.append([row[0], row[1], row[7]])
@@ -140,6 +140,10 @@ class ExcelTool:
         worksheet.column_dimensions["G"].width = 45
         worksheet.column_dimensions["H"].width = 70
 
+        for row in range(3, last_row + 1):
+            worksheet[f"H{row}"].value = f'=HYPERLINK("{worksheet[f"H{row}"].value}")'
+
+
 
     def format_generated_ws_sheet(self, worksheet) -> None:
         """General format for each Co-op sheet."""
@@ -154,10 +158,15 @@ class ExcelTool:
         worksheet["C1"].fill = self.fill["light_green"]
 
         worksheet.merge_cells("B2:D2")
+        worksheet.merge_cells("B3:D3")
+        worksheet.merge_cells("B4:D4")
 
         worksheet.merge_cells("B5:D5")        
         worksheet["A5"].alignment = Alignment(vertical="top")
         worksheet["B5"].alignment = Alignment(vertical="top", wrap_text=True)
+
+        worksheet.merge_cells("B6:D6")
+        worksheet["B6"].value = f'=HYPERLINK("{worksheet["B6"].value}")'
 
         worksheet.merge_cells("A7:D7")
         worksheet["A7"].font = Font(bold=True)
@@ -168,11 +177,10 @@ class ExcelTool:
         worksheet.column_dimensions["C"].width = 50
         worksheet.column_dimensions["D"].width = 50
 
-        row: int = 8
-        while row <= worksheet._current_row:
+
+        for row in range(8, worksheet._current_row + 1):
             worksheet.merge_cells(f"A{row}:B{row}")
             worksheet[f"D{row}"].alignment = Alignment(shrink_to_fit=True)
-            row += 1
 
 
     def format_attendance_sheet(self, worksheet, last_row: int, coops: list) -> None:    
@@ -183,12 +191,10 @@ class ExcelTool:
         worksheet.merge_cells("A2:B2")
         worksheet.merge_cells("C2:E2")
 
-        row: int = 1
-        while row <= last_row:
+        for row in range(1, last_row + 1):
             cell_value = worksheet[f"C{row}"].value
             if cell_value != None and "https://" in cell_value:
                 worksheet.merge_cells(f"C{row}:E{row}")
-            row += 1
 
         worksheet.column_dimensions["A"].width = 40
         worksheet.column_dimensions["B"].width = 40
@@ -234,7 +240,6 @@ class ExcelTool:
         )
 
         columns: str = "ABCDE"
-        row: int = 4
         coop_info_font = Font(size=12, bold=True)
         coop_info_border = Border(
             top=self.line["thick"], 
@@ -242,7 +247,7 @@ class ExcelTool:
         )
         content_font = Font(size=12)
 
-        while row <= last_row:
+        for row in range(4, last_row + 1):
             current_cell = worksheet[f"A{row}"]
             if current_cell.value in coops:
                 for column in columns[:3]:
@@ -272,8 +277,6 @@ class ExcelTool:
             else:
                 for column in columns:
                     current_cell = worksheet[f"{column}{row}"]              
-
-            row += 1
 
     
     def format_dates(self, workshop: dict) -> str:
