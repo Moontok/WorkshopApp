@@ -1,6 +1,7 @@
 # This is a module created to support workshop_program.py.
 
 
+from json import load
 from connection_tool import ConnectionTool
 from re import search
 from datetime import datetime
@@ -20,49 +21,32 @@ class WorkshopsTool:
     def setup_workshop_information(self) -> None:
         """Rip, organize, and clean the workshop information."""
 
-        workshops_content: list = self.connector.get_instructor_page()
-
-        # Convert the workshopContent into a list of lists skipping the first row of the table:
-        # ['Workshop Name', 'Workshop Date and Time', 'Workshop Enrollment']
-        workshops_content = [x.text.split("\n") for x in list(workshops_content)[1:]]
+        workshops_from_instructor_page: list = self.connector.get_instructor_page()
 
         workshops = list()        
 
-        for workshop_info in workshops_content:
+        for workshop_info in workshops_from_instructor_page:
             workshop = dict()
 
             workshop["workshop_id"] = workshop_info[0][:6]
-            workshop["workshop_name"] = workshop_info[0][9:]
-            workshop["workshop_start_date_and_time"] = workshop_info[1]
-            workshop["workshop_signed_up"] = workshop_info[2].split(" / ")[0]
-            workshop["workshop_participant_capacity"] = workshop_info[2].split(" / ")[1]
+            workshop["workshop_start_date_and_time"] = workshop_info[1]          
             workshop["workshop_url"] = f'{self.connector.get_connection_info_for("base_workshop_url")}{workshop["workshop_id"]}'
-            dates_and_location: dict = self.get_dates_and_location(workshop["workshop_url"])
-            workshop["workshop_location"] = dates_and_location["location"]
+            workshop_information: dict = self.connector.get_session_page_content(workshop["workshop_url"])
+            workshop["workshop_name"] = workshop_information["name"]
+            workshop["workshop_description"] = workshop_information["description"]
+            workshop["workshop_signed_up"] = workshop_information["seats_filled"].split(" / ")[0]
+            workshop["workshop_participant_capacity"] = workshop_information["seats_filled"].split(" / ")[1]
+            workshop["workshop_location"] =  workshop_information["location"]            
+            workshop["workshop_dates"] = workshop_information["dates"]
+            workshop["workshop_credits"] = workshop_information["credits"]
+            workshop["workshop_fees"] = workshop_information["fee"] 
             workshop["workshop_participant_info_list"] = self.construct_participant_info(workshop["workshop_id"])
-            workshop["workshop_dates"] = dates_and_location["dates"]
             workshops.append(workshop)
     
         
         self.construct_workshop_database(workshops)
         self.connector.close_session()
 
-
-    def get_dates_and_location(self, workshop_url: str) -> str:
-        """Get location of the workshop."""
-        content: list = self.connector.get_session_page(workshop_url)
-        filtered_content: list = content[6:]
-        location: str = filtered_content[2].text
-        dates: str = ""
-        for index, element in enumerate(filtered_content):
-            
-            if index % 3 == 0:
-                if dates == "":
-                    dates = element.text
-                else:
-                    dates = f"{dates}_{element.text}"
-        
-        return {"location":location, "dates":dates}
 
     def construct_participant_info(self, id: str) -> dict:
         """
@@ -202,7 +186,14 @@ class WorkshopsTool:
     def get_most_recent_search_results(self) -> list:
         """Return the most recent workshop search results."""
 
-        return self.searched_workshops
+        return self.searched_workshops    
+
+    
+    def get_co_op_info(self) -> dict:
+        """Load and get the Session Location information from the co_op_names.json file."""
+
+        with open("co_op_names.json", "r") as f:
+            return load(f)
 
 
     def set_search_phrase(self, phrase: str) -> None:

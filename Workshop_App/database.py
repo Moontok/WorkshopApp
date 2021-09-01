@@ -19,13 +19,16 @@ class WorkshopDatabase:
             """CREATE TABLE IF NOT EXISTS workshops (
                     id INTEGER PRIMARY KEY,
                     workshop_id TEXT NOT NULL,
-                    workshop_name TEXT NOT NULL,
                     workshop_start_date_and_time TEXT NOT NULL,
+                    workshop_url TEXT NOT NULL,
+                    workshop_name TEXT NOT NULL,
+                    workshop_description TEXT NOT NULL,
                     workshop_signed_up TEXT NOT NULL,
                     workshop_participant_capacity TEXT NOT NULL,
-                    workshop_url TEXT NOT NULL,
                     workshop_location TEXT NOT NULL,
-                    workshop_dates TEXT NOT NULL
+                    workshop_dates TEXT NOT NULL,
+                    workshop_credits TEXT NOT NULL,
+                    workshop_fees TEXT NOT NULL
                     );"""
         )
 
@@ -44,16 +47,19 @@ class WorkshopDatabase:
         """Add a single workshop to database."""
 
         self.c.execute(
-            "INSERT INTO workshops (workshop_id, workshop_name, workshop_start_date_and_time, workshop_signed_up, workshop_participant_capacity, workshop_url, workshop_location, workshop_dates) VALUES (?,?,?,?,?,?,?,?)",
+            "INSERT INTO workshops (workshop_id, workshop_start_date_and_time, workshop_url, workshop_name, workshop_description, workshop_signed_up, workshop_participant_capacity, workshop_location, workshop_dates, workshop_credits, workshop_fees) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
             (
                 ws_info["workshop_id"],
+                ws_info["workshop_start_date_and_time"],         
+                ws_info["workshop_url"],
                 ws_info["workshop_name"],
-                ws_info["workshop_start_date_and_time"],
+                ws_info["workshop_description"],
                 ws_info["workshop_signed_up"],
                 ws_info["workshop_participant_capacity"],
-                ws_info["workshop_url"],
-                ws_info["workshop_location"],
-                ws_info["workshop_dates"]
+                ws_info["workshop_location"],            
+                ws_info["workshop_dates"],
+                ws_info["workshop_credits"],
+                ws_info["workshop_fees"],
             ),
         )
 
@@ -93,18 +99,21 @@ class WorkshopDatabase:
         workshop = dict()
 
         workshop["workshop_id"] = workshop_info[1]
-        workshop["workshop_name"] = workshop_info[2]
-        workshop["workshop_start_date_and_time"] = workshop_info[3]
-        workshop["workshop_signed_up"] = workshop_info[4]
-        workshop["workshop_participant_capacity"] = workshop_info[5]
-        workshop["workshop_url"] = workshop_info[6]
-        workshop["workshop_location"] = workshop_info[7]
-        workshop["workshop_dates"] = workshop_info[8]
+        workshop["workshop_start_date_and_time"] = workshop_info[2]          
+        workshop["workshop_url"] = workshop_info[3]
+        workshop["workshop_name"] = workshop_info[4]
+        workshop["workshop_description"] = workshop_info[5]
+        workshop["workshop_signed_up"] = workshop_info[6]
+        workshop["workshop_participant_capacity"] = workshop_info[7]
+        workshop["workshop_location"] =  workshop_info[8]            
+        workshop["workshop_dates"] = workshop_info[9]
+        workshop["workshop_credits"] = workshop_info[10]
+        workshop["workshop_fees"] = workshop_info[11]
 
         return workshop
 
 
-    def get_participant_info(self, workshop_id: str):
+    def get_participant_info(self, workshop_id: str) -> list:
         """Retrieve the partipant information that corresponds to the ID."""
 
         participant_info = self.c.execute(

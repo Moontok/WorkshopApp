@@ -1,4 +1,4 @@
-# Module to handle connecting and scraping webpages.
+# Module to handle connecting, scraping webpages, and getting file content.
 
 
 from requests_html import Element, HTMLSession, HTMLResponse
@@ -31,14 +31,40 @@ class ConnectionTool:
         """Scrapes the workshop information from the instructor page."""
 
         page_content: HTMLResponse = self.session.get(self.connection_info["instructor_page_url"])
-        return page_content.html.find("table.mainBody tr")
-
-
-    def get_session_page(self, session_url: str) -> list:
-        """Scrapes the session information page."""
+        workshops_table: list =  page_content.html.find("table.mainBody tr")
         
-        page_content: HTMLResponse = self.session.get(session_url)
-        return list(page_content.html.find("table.mainBody tr td"))
+        # Convert the workshopContent into a list of lists skipping the first row of the table:
+        # ['Workshop Name', 'Workshop Date and Time', 'Workshop Enrollment']
+        return[x.text.split("\n") for x in list(workshops_table)[1:]]
+
+
+    def get_session_page_content(self, session_url: str) -> dict:
+        """Returns the location and dates from session page."""
+
+        session_page_content: HTMLResponse = self.session.get(session_url)
+        workshop_information = dict()
+
+        date_and_location_table = list(session_page_content.html.find("table.mainBody tr td"))
+        date_and_location_filtered_content: list = date_and_location_table[6:]
+        dates: str = ""
+        for index, element in enumerate(date_and_location_filtered_content):            
+            if index % 3 == 0:
+                if dates == "":
+                    dates = element.text
+                else:
+                    dates = f"{dates}_{element.text}"
+
+        workshop_information["name"] = session_page_content.html.find("span#ctl00_mainBody_lblTitle", first=True).text
+        workshop_information["dates"] = dates
+        workshop_information["location"] = date_and_location_filtered_content[2].text
+        workshop_information["description"] = session_page_content.html.find("span#ctl00_mainBody_lblDescription", first=True).text
+        workshop_information["fee"] = session_page_content.html.find("span#ctl00_mainBody_lblFee", first=True).text
+        workshop_information["credits"] = session_page_content.html.find("span#ctl00_mainBody_lblCredits", first=True).text
+        workshop_information["seats_filled"] = session_page_content.html.find("span#ctl00_mainBody_lblSeatsFilled", first=True).text
+
+        return workshop_information
+
+
 
     def get_participant_page(self, id: str) -> list:
         """Scrapes the participant information for a target workshop based in provided ID."""
@@ -111,3 +137,7 @@ class ConnectionTool:
         """For good measures, closes the HTMLSession."""
 
         self.session.close()
+
+
+if __name__ == "__main__":
+    print("This is a module...")
