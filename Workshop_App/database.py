@@ -165,11 +165,9 @@ class WorkshopDatabase:
         
         self.c.close()
         self.connection.close()
-
+        
         if exc_type != None or exc_value != None or exc_traceback != None:
-            print(f"Exception Type: {exc_type}")
-            print(f"Exception Value: {exc_value}")
-            print(f"Exception Traceback: {exc_traceback}")
+            raise exc_type
 
 
 if __name__ == "__main__":

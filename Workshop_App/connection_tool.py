@@ -2,8 +2,6 @@
 
 
 from requests_html import Element, HTMLSession, HTMLResponse
-from os import chdir
-from pathlib import Path
 from json import load, dump
 
 
@@ -14,7 +12,6 @@ class ConnectionTool:
         self.session: HTMLSession = HTMLSession()
         self.connection_info: dict = self.setup_connection_info()
 
-        self.set_working_directory("Workshop_App")
         self.intial_connection()
 
 
@@ -85,20 +82,6 @@ class ConnectionTool:
         """Return the connection information based on provided item."""
 
         return self.connection_info[item]
-
-
-    def set_working_directory(self, target_dir: str) -> None:
-        """Set the current directory to the <targetDir> dir if not already."""
-
-        path: Path = Path(__file__)
-
-        if path.parent.name != target_dir:
-            parent_name: str = path.parent.name
-            while parent_name != target_dir and path.name != parent_name:
-                path: str = path.parent
-            chdir(path)
-        else:
-            chdir(path.parent)
 
     
     def store_user_info(self, user_name: str, user_password: str) -> None:
