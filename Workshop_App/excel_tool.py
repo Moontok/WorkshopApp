@@ -180,6 +180,7 @@ class ExcelTool:
 
         for row in range(8, worksheet._current_row + 1):
             worksheet.merge_cells(f"A{row}:B{row}")
+            worksheet[f"D{row}"].alignment = Alignment(horizontal="fill")
 
 
     def format_attendance_sheet(self, worksheet, last_row: int, coops: list) -> None:    
