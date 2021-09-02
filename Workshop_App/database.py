@@ -17,29 +17,29 @@ class WorkshopDatabase:
 
         self.c.execute(
             """CREATE TABLE IF NOT EXISTS workshops (
-                    id INTEGER PRIMARY KEY,
-                    workshop_id TEXT NOT NULL,
-                    workshop_start_date_and_time TEXT NOT NULL,
-                    workshop_url TEXT NOT NULL,
-                    workshop_name TEXT NOT NULL,
-                    workshop_description TEXT NOT NULL,
-                    workshop_signed_up TEXT NOT NULL,
-                    workshop_participant_capacity TEXT NOT NULL,
-                    workshop_location TEXT NOT NULL,
-                    workshop_dates TEXT NOT NULL,
-                    workshop_credits TEXT NOT NULL,
-                    workshop_fees TEXT NOT NULL
-                    );"""
+                id INTEGER PRIMARY KEY,
+                workshop_id TEXT NOT NULL,
+                workshop_start_date_and_time TEXT NOT NULL,
+                workshop_url TEXT NOT NULL,
+                workshop_name TEXT NOT NULL,
+                workshop_description TEXT NOT NULL,
+                workshop_signed_up TEXT NOT NULL,
+                workshop_participant_capacity TEXT NOT NULL,
+                workshop_location TEXT NOT NULL,
+                workshop_dates TEXT NOT NULL,
+                workshop_credits TEXT NOT NULL,
+                workshop_fees TEXT NOT NULL
+            );"""
         )
 
         self.c.execute(
             """CREATE TABLE IF NOT EXISTS participant_information (
-                    id INTEGER PRIMARY KEY,
-                    workshop_id TEXT NOT NULL,
-                    name TEXT NOT NULL,
-                    email TEXT NOT NULL,
-                    school TEXT NOT NULL
-                    );"""
+                id INTEGER PRIMARY KEY,
+                workshop_id TEXT NOT NULL,
+                name TEXT NOT NULL,
+                email TEXT NOT NULL,
+                school TEXT NOT NULL
+            );"""
         )
 
 
@@ -47,7 +47,19 @@ class WorkshopDatabase:
         """Add a single workshop to database."""
 
         self.c.execute(
-            "INSERT INTO workshops (workshop_id, workshop_start_date_and_time, workshop_url, workshop_name, workshop_description, workshop_signed_up, workshop_participant_capacity, workshop_location, workshop_dates, workshop_credits, workshop_fees) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+            """INSERT INTO workshops (
+                workshop_id, 
+                workshop_start_date_and_time, 
+                workshop_url, 
+                workshop_name, 
+                workshop_description, 
+                workshop_signed_up, 
+                workshop_participant_capacity, 
+                workshop_location, 
+                workshop_dates, 
+                workshop_credits, 
+                workshop_fees
+            ) VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
             (
                 ws_info["workshop_id"],
                 ws_info["workshop_start_date_and_time"],         
@@ -59,8 +71,8 @@ class WorkshopDatabase:
                 ws_info["workshop_location"],            
                 ws_info["workshop_dates"],
                 ws_info["workshop_credits"],
-                ws_info["workshop_fees"],
-            ),
+                ws_info["workshop_fees"]
+            )
         )
 
         for participant in ws_info["workshop_participant_info_list"]:
@@ -70,8 +82,8 @@ class WorkshopDatabase:
                     ws_info["workshop_id"],
                     participant["name"],
                     participant["email"],
-                    participant["school"],
-                ),
+                    participant["school"]
+                )
             )
 
         self.connection.commit()
@@ -118,7 +130,7 @@ class WorkshopDatabase:
 
         participant_info = self.c.execute(
             "SELECT name, email, school FROM participant_information WHERE workshop_id = ?",
-            (workshop_id,),
+            [workshop_id]
         )
 
         participants = list()
@@ -141,12 +153,8 @@ class WorkshopDatabase:
     def drop_tables(self):
         """Clear all tables in the database."""
 
-        self.c.execute(
-            "DROP TABLE IF EXISTS workshops;",
-        )
-        self.c.execute(
-            "DROP TABLE IF EXISTS participant_information;",
-        )
+        self.c.execute("DROP TABLE IF EXISTS workshops;")
+        self.c.execute("DROP TABLE IF EXISTS participant_information;")
 
 
     def __enter__(self):
