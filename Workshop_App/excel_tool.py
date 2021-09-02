@@ -191,11 +191,6 @@ class ExcelTool:
         worksheet.merge_cells("A2:B2")
         worksheet.merge_cells("C2:E2")
 
-        # for row in range(1, last_row + 1):
-        #     cell_value = worksheet[f"C{row}"].value
-        #     if cell_value != None and "https://" in cell_value:
-        #         worksheet.merge_cells(f"C{row}:E{row}")
-
         worksheet.column_dimensions["A"].width = 40
         worksheet.column_dimensions["B"].width = 40
         worksheet.column_dimensions["C"].width = 40
@@ -265,7 +260,7 @@ class ExcelTool:
                     if column not in columns[:3]:
                         current_cell.alignment = self.align["right"]
                     else:
-                        current_cell.alignment = self.align["left"]
+                        current_cell.alignment = Alignment(horizontal="fill")
             else:
                 for column in columns:
                     current_cell = worksheet[f"{column}{row}"]              
