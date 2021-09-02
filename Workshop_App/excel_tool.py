@@ -19,8 +19,8 @@ class ExcelTool:
             "light_green":PatternFill(fill_type="solid", start_color="AEEBAE", end_color="AEEBAE")
         }
         self.align: dict = {            
-            "right":Alignment(shrink_to_fit=True, horizontal="right"),
-            "left":Alignment(shrink_to_fit=True, horizontal="left")
+            "right":Alignment(horizontal="right"),
+            "left":Alignment(horizontal="left")
         }
 
     def export_workshops_info(self, ui: GuiWindow, ws: WorkshopsTool) -> None:
@@ -180,7 +180,6 @@ class ExcelTool:
 
         for row in range(8, worksheet._current_row + 1):
             worksheet.merge_cells(f"A{row}:B{row}")
-            worksheet[f"D{row}"].alignment = Alignment(shrink_to_fit=True)
 
 
     def format_attendance_sheet(self, worksheet, last_row: int, coops: list) -> None:    
