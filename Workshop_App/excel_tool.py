@@ -191,10 +191,10 @@ class ExcelTool:
         worksheet.merge_cells("A2:B2")
         worksheet.merge_cells("C2:E2")
 
-        for row in range(1, last_row + 1):
-            cell_value = worksheet[f"C{row}"].value
-            if cell_value != None and "https://" in cell_value:
-                worksheet.merge_cells(f"C{row}:E{row}")
+        # for row in range(1, last_row + 1):
+        #     cell_value = worksheet[f"C{row}"].value
+        #     if cell_value != None and "https://" in cell_value:
+        #         worksheet.merge_cells(f"C{row}:E{row}")
 
         worksheet.column_dimensions["A"].width = 40
         worksheet.column_dimensions["B"].width = 40
@@ -211,33 +211,24 @@ class ExcelTool:
         worksheet["A1"].font = title_header_font 
         worksheet["A2"].font = title_header_font
         worksheet["A1"].alignment = title_header_alignment 
-        worksheet["A2"].alignment = title_header_alignment
-        worksheet["A1"].border = Border(
-            left=self.line["thick"], 
-            top=self.line["thick"], 
-            right=self.line["thick"]
-        )
-        worksheet["A2"].border = Border(
-            left=self.line["thick"], 
-            bottom=self.line["thick"], 
-            right=self.line["thick"]
-        )
+        worksheet["A2"].alignment = title_header_alignment        
+        worksheet["A1"].border = Border(left=self.line["thick"], top=self.line["thick"], right=self.line["thick"])
+        worksheet["A2"].border = Border(left=self.line["thick"], bottom=self.line["thick"], right=self.line["thick"])
+        worksheet["B1"].border = Border(top=self.line["thick"])
+        worksheet["B2"].border = Border(bottom=self.line["thick"])
+
         worksheet["C1"].font = title_content_font 
         worksheet["C2"].font = title_content_font
         worksheet["C1"].fill = self.fill["dark_grey"] 
         worksheet["C2"].fill = self.fill["dark_grey"]
         worksheet["C1"].alignment = title_content_alignment 
         worksheet["C2"].alignment = title_content_alignment
-        worksheet["C1"].border = Border(
-            left=self.line["thick"], 
-            top=self.line["thick"], 
-            right=self.line["thick"]
-        )
-        worksheet["C2"].border = Border(
-            left=self.line["thick"], 
-            bottom=self.line["thick"], 
-            right=self.line["thick"]
-        )
+        worksheet["C1"].border = Border(left=self.line["thick"], top=self.line["thick"], right=self.line["thick"])
+        worksheet["C2"].border = Border(left=self.line["thick"], bottom=self.line["thick"], right=self.line["thick"])
+        worksheet["D1"].border = Border(top=self.line["thick"])
+        worksheet["E1"].border = Border(top=self.line["thick"], right=self.line["thick"])
+        worksheet["D2"].border = Border(bottom=self.line["thick"])
+        worksheet["E2"].border = Border(bottom=self.line["thick"], right=self.line["thick"])
 
         columns: str = "ABCDE"
         coop_info_font = Font(size=12, bold=True)
@@ -250,13 +241,14 @@ class ExcelTool:
         for row in range(4, last_row + 1):
             current_cell = worksheet[f"A{row}"]
             if current_cell.value in coops:
-                for column in columns[:3]:
+                for column in columns:
                     current_cell = worksheet[f"{column}{row}"]
                     current_cell.font = coop_info_font
                     current_cell.fill = self.fill["light_green"]
                     current_cell.border = coop_info_border
-                    current_cell.alignment = self.align["right"]
-                current_cell.value = f'=HYPERLINK("{current_cell.value}")'
+                    current_cell.alignment = self.align["right"]                
+                worksheet.merge_cells(f"C{row}:E{row}")
+                worksheet[f"C{row}"] = f'=HYPERLINK("{worksheet[f"C{row}"].value}")'
             elif current_cell.value == "Name":
                 for column in columns:
                     current_cell = worksheet[f"{column}{row}"]
