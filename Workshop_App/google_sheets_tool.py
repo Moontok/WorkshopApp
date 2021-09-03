@@ -1,9 +1,15 @@
 from googleapiclient.discovery import build
 from google.oauth2 import service_account
+from pygsheets import authorize
+from workshop_tool import WorkshopsTool
+from gui_window import GuiWindow
+from spread_sheet_base_tool import SpreadSheetBaseTool
 
-class GoogleSheetTool:
+class GoogleSheetTool(SpreadSheetBaseTool):
 
-    def __init__(self):        
+    def __init__(self):
+        super().__init__() 
+
         # Credentials
         self.service_account_file: str = "google_info.json"
         self.g_scopes: list = ["https://www.googleapis.com/auth/spreadsheets"]
@@ -13,7 +19,7 @@ class GoogleSheetTool:
         )
 
 
-    def export_workshops_info(self, ui: GuiWindow, ws: WorkshopsTool) -> None:
+    def export_workshops_info(self, ui: GuiWindow=None, ws: WorkshopsTool=None) -> None:
         """Exports the searched workshop information to an .xlsx file."""
 
         service = build("sheets", "v4", credentials=self.creds)
@@ -21,10 +27,16 @@ class GoogleSheetTool:
         # Call the Sheets API
         sheet = service.spreadsheets()
 
+        # ws.set_search_phrase(ui.lineEditPhrase.text())
+
+        # workshops: list = ws.get_most_recent_search_results()
+
         values_to_write = [
             ["a", "b"],
             ["c", "d", "e"]
         ]
+
+        sheet.clear()
 
         sheet.values().update(
             spreadsheetId="1nYTi7s1VDFXsqupYs7ZPe_9_SrDL2hAAI_i0jnEB5hw",
@@ -34,7 +46,7 @@ class GoogleSheetTool:
         ).execute()
 
 
-    def format_workshops_sheet(self, worksheet, last_row: int) -> None:
+    def format_workshops_sheet(self, worksheet) -> None:
         """Formats excel workshops sheet."""
         pass
 
@@ -44,7 +56,7 @@ class GoogleSheetTool:
         pass
 
 
-    def format_attendance_sheet(self, worksheet, last_row: int, coops: list) -> None:    
+    def format_attendance_sheet(self, worksheet) -> None:    
         """Formats excel attendance sheet."""
         pass
 
@@ -52,4 +64,4 @@ class GoogleSheetTool:
 
 if __name__ == "__main__":
     gt = GoogleSheetTool()
-    gt.main()
+    gt.export_workshops_info()

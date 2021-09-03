@@ -4,15 +4,19 @@ from workshop_tool import WorkshopsTool
 from gui_window import GuiWindow
 
 class SpreadSheetBaseTool(ABC):
+    """Abstract class for the spread sheet tools."""
+
+    def __init__(self):        
+        self.co_op_abbreviations = list()
 
     @abstractmethod
     def export_workshops_info(self, ui: GuiWindow, ws: WorkshopsTool) -> None:
-        """Exports the searched workshop information to an .xlsx file."""
+        """Exports the searched workshop information to a file."""
         raise NotImplementedError
         
     @abstractmethod
-    def format_workshops_sheet(self, worksheet, last_row: int) -> None:
-        """Formats excel workshops sheet."""
+    def format_workshops_sheet(self, worksheet) -> None:
+        """Formats workshops sheet."""
         raise NotImplementedError
 
     @abstractmethod
@@ -21,8 +25,8 @@ class SpreadSheetBaseTool(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def format_attendance_sheet(self, worksheet, last_row: int, coops: list) -> None:    
-        """Formats excel attendance sheet."""
+    def format_attendance_sheet(self, worksheet) -> None:    
+        """Formats attendance sheet."""
         raise NotImplementedError 
 
     def build_row_for_workshop(self, co_op_session_location: dict, workshop: dict) -> list:

@@ -1,16 +1,17 @@
 from PyQt5.QtWidgets import QFileDialog
-from workshop_tool import WorkshopsTool
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Side, numbers
 from openpyxl.styles.borders import Border
+from workshop_tool import WorkshopsTool
 from gui_window import GuiWindow
 from spread_sheet_base_tool import SpreadSheetBaseTool
 
 class ExcelTool(SpreadSheetBaseTool):
 
     def __init__(self):
-        self.co_op_abbreviations = list()
+        super().__init__()
 
+        # Quick styles
         self.line: dict = {
             "thick":Side(border_style="thick", color="000000"),
             "thin":Side(border_style="thin", color="000000")
