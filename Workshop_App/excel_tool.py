@@ -1,4 +1,3 @@
-from datetime import datetime
 from PyQt5.QtWidgets import QFileDialog
 from workshop_tool import WorkshopsTool
 from openpyxl import Workbook
@@ -10,6 +9,8 @@ from spread_sheet_base_tool import SpreadSheetBaseTool
 class ExcelTool(SpreadSheetBaseTool):
 
     def __init__(self):
+        self.co_op_abbreviations = list()
+
         self.line: dict = {
             "thick":Side(border_style="thick", color="000000"),
             "thin":Side(border_style="thin", color="000000")
@@ -21,7 +22,9 @@ class ExcelTool(SpreadSheetBaseTool):
         }
         self.align: dict = {            
             "right":Alignment(horizontal="right"),
-            "left":Alignment(horizontal="left")
+            "left":Alignment(horizontal="left"),
+            "fill":Alignment(horizontal="fill"),
+            "center":Alignment(horizontal="center")
         }
 
     def export_workshops_info(self, ui: GuiWindow, ws: WorkshopsTool) -> None:
@@ -46,7 +49,6 @@ class ExcelTool(SpreadSheetBaseTool):
         attendance_sheet["C2"] = self.format_dates(workshops[0])
         attendance_sheet.append([])
 
-        co_op_abbreviations = list()
         workshop_rows = list()
 
         for workshop in workshops:
@@ -56,7 +58,6 @@ class ExcelTool(SpreadSheetBaseTool):
         workshop_rows.sort()
 
         for row in workshop_rows:
-
             workshops_sheet.append(row[:8])
             
             sheet = workbook.create_sheet(row[0])        
@@ -79,19 +80,16 @@ class ExcelTool(SpreadSheetBaseTool):
                     attendance_sheet.append(attendance_row)
 
             attendance_sheet.append([])
-            co_op_abbreviations.append(row[0])            
+            self.co_op_abbreviations.append(row[0])            
             self.format_generated_ws_sheet(sheet)
-
-        workshops_sheet_last_row: int = workshops_sheet._current_row
-        workshops_sheet[f"A{workshops_sheet_last_row + 2}"] = "Total:"
-        workshops_sheet[f"B{workshops_sheet_last_row + 2}"] = len(workshop_rows)
-        workshops_sheet[f"D{workshops_sheet_last_row + 2}"] = "Signed Up:"
-        workshops_sheet[f"E{workshops_sheet_last_row + 2}"] = f"=SUM(E3:E{workshops_sheet_last_row})"
         
-        attendance_sheet_last_row: int = attendance_sheet._current_row
-
-        self.format_workshops_sheet(workshops_sheet, workshops_sheet_last_row)
-        self.format_attendance_sheet(attendance_sheet, attendance_sheet_last_row, co_op_abbreviations)
+        workshops_sheet[f"A{workshops_sheet._current_row + 2}"] = "Total:"
+        workshops_sheet[f"B{workshops_sheet._current_row}"] = len(workshop_rows)
+        workshops_sheet[f"D{workshops_sheet._current_row}"] = "Signed Up:"
+        workshops_sheet[f"E{workshops_sheet._current_row}"] = f"=SUM(E3:E{workshops_sheet._current_row - 2})"
+        
+        self.format_workshops_sheet(workshops_sheet)
+        self.format_attendance_sheet(attendance_sheet)
 
         save_file_info: str = QFileDialog().getSaveFileName(None, directory="workshop_info.xlsx", filter="Excel files (*.xlsx)")[0]
 
@@ -100,17 +98,19 @@ class ExcelTool(SpreadSheetBaseTool):
             workbook.save(filename=save_file_info)
 
     
-    def format_workshops_sheet(self, worksheet, last_row: int) -> None:
+    def format_workshops_sheet(self, worksheet) -> None:
         """Formats excel workshops sheet."""
 
         worksheet.merge_cells("A1:H1")
         worksheet["A1"].font = Font(size=18, bold=True)
         worksheet["A1"].fill = self.fill["light_green"]
 
-        worksheet[f"D{last_row + 2}"].font = Font(bold=True)
-        worksheet[f"E{last_row + 2}"].font = Font(bold=True)
-        worksheet[f"A{last_row + 2}"].font = Font(bold=True)
-        worksheet[f"B{last_row + 2}"].font = Font(bold=True)
+        last_row: int = worksheet._current_row
+
+        worksheet[f"D{last_row}"].font = Font(bold=True)
+        worksheet[f"E{last_row}"].font = Font(bold=True)
+        worksheet[f"A{last_row}"].font = Font(bold=True)
+        worksheet[f"B{last_row}"].font = Font(bold=True)
 
         worksheet.column_dimensions["A"].width = 15
         worksheet.column_dimensions["C"].width = 70
@@ -118,7 +118,7 @@ class ExcelTool(SpreadSheetBaseTool):
         worksheet.column_dimensions["G"].width = 45
         worksheet.column_dimensions["H"].width = 70
 
-        for row in range(3, last_row + 1):
+        for row in range(3, last_row - 1):
             worksheet[f"H{row}"].value = f'=HYPERLINK("{worksheet[f"H{row}"].value}")'
 
 
@@ -157,10 +157,10 @@ class ExcelTool(SpreadSheetBaseTool):
 
         for row in range(8, worksheet._current_row + 1):
             worksheet.merge_cells(f"A{row}:B{row}")
-            worksheet[f"D{row}"].alignment = Alignment(horizontal="fill")
+            worksheet[f"D{row}"].alignment = self.align["fill"]
 
 
-    def format_attendance_sheet(self, worksheet, last_row: int, coops: list) -> None:    
+    def format_attendance_sheet(self, worksheet) -> None:    
         """Formats excel attendance sheet."""        
 
         worksheet.merge_cells("A1:B1")
@@ -176,14 +176,12 @@ class ExcelTool(SpreadSheetBaseTool):
         
          
         title_header_font = Font(size=16, bold=True)
-        title_header_alignment = Alignment(horizontal="right")
         title_content_font = Font(size=16, bold=True, color="AEEBAE")
-        title_content_alignment = Alignment(horizontal="center")
 
         worksheet["A1"].font = title_header_font 
         worksheet["A2"].font = title_header_font
-        worksheet["A1"].alignment = title_header_alignment 
-        worksheet["A2"].alignment = title_header_alignment        
+        worksheet["A1"].alignment = self.align["right"]
+        worksheet["A2"].alignment = self.align["center"]        
         worksheet["A1"].border = Border(left=self.line["thick"], top=self.line["thick"], right=self.line["thick"])
         worksheet["A2"].border = Border(left=self.line["thick"], bottom=self.line["thick"], right=self.line["thick"])
         worksheet["B1"].border = Border(top=self.line["thick"])
@@ -193,8 +191,8 @@ class ExcelTool(SpreadSheetBaseTool):
         worksheet["C2"].font = title_content_font
         worksheet["C1"].fill = self.fill["dark_grey"] 
         worksheet["C2"].fill = self.fill["dark_grey"]
-        worksheet["C1"].alignment = title_content_alignment 
-        worksheet["C2"].alignment = title_content_alignment
+        worksheet["C1"].alignment = self.align["center"] 
+        worksheet["C2"].alignment = self.align["center"]
         worksheet["C1"].border = Border(left=self.line["thick"], top=self.line["thick"], right=self.line["thick"])
         worksheet["C2"].border = Border(left=self.line["thick"], bottom=self.line["thick"], right=self.line["thick"])
         worksheet["D1"].border = Border(top=self.line["thick"])
@@ -210,9 +208,9 @@ class ExcelTool(SpreadSheetBaseTool):
         )
         content_font = Font(size=12)
 
-        for row in range(4, last_row + 1):
+        for row in range(4, worksheet._current_row + 1):
             current_cell = worksheet[f"A{row}"]
-            if current_cell.value in coops:
+            if current_cell.value in self.co_op_abbreviations:
                 for column in columns:
                     current_cell = worksheet[f"{column}{row}"]
                     current_cell.font = coop_info_font
@@ -237,7 +235,7 @@ class ExcelTool(SpreadSheetBaseTool):
                     if column not in columns[:3]:
                         current_cell.alignment = self.align["right"]
                     else:
-                        current_cell.alignment = Alignment(horizontal="fill")
+                        current_cell.alignment = self.align["fill"]
             else:
                 for column in columns:
                     current_cell = worksheet[f"{column}{row}"]              
