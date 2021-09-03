@@ -1,67 +1,36 @@
-from googleapiclient.discovery import build
-from google.oauth2 import service_account
-from pygsheets import authorize
-from workshop_tool import WorkshopsTool
-from gui_window import GuiWindow
-from spread_sheet_base_tool import SpreadSheetBaseTool
 
-class GoogleSheetTool(SpreadSheetBaseTool):
-
-    def __init__(self):
-        super().__init__() 
-
-        # Credentials
-        self.service_account_file: str = "google_info.json"
-        self.g_scopes: list = ["https://www.googleapis.com/auth/spreadsheets"]
-        self.creds = service_account.Credentials.from_service_account_file(
-            self.service_account_file,
-            scopes=self.g_scopes
-        )
-
-
-    def export_workshops_info(self, ui: GuiWindow=None, ws: WorkshopsTool=None) -> None:
-        """Exports the searched workshop information to an .xlsx file."""
-
-        service = build("sheets", "v4", credentials=self.creds)
+class GoogleSheetsTool:
         
-        # Call the Sheets API
-        sheet = service.spreadsheets()
+    def __init__(self):
+        self.current_sheets = [0]
 
-        # ws.set_search_phrase(ui.lineEditPhrase.text())
-
-        # workshops: list = ws.get_most_recent_search_results()
-
-        values_to_write = [
-            ["a", "b"],
-            ["c", "d", "e"]
-        ]
-
-        sheet.clear()
-
-        sheet.values().update(
-            spreadsheetId="1nYTi7s1VDFXsqupYs7ZPe_9_SrDL2hAAI_i0jnEB5hw",
-            range="Sheet1!a1",
-            valueInputOption="USER_ENTERED",
-            body={"values": values_to_write},
-        ).execute()
-
-
-    def format_workshops_sheet(self, worksheet) -> None:
-        """Formats excel workshops sheet."""
+    
+    def add_row(self, row: list) -> None:
         pass
+    
+    def add_values_request(self, range: str, rows: list) -> dict:
+        """Add values in a range."""
+        
+        return {"range": f"{range}", "values": rows}
+    
+    
+    def change_google_sheet_name_request(self, name: str) -> dict:
+            "Change the name of the google sheet."
+
+            return {"updateSpreadsheetProperties":{"properties":{"title": f"{name}"},"fields": "title"}}
 
 
-    def format_generated_ws_sheet(self, worksheet) -> None:
-        """General format for each Co-op sheet."""
-        pass
+    def change_sheet_name_request(self, sheet_index: int, new_name: str) -> dict:
+        """Change the name of the specified sheet."""
+        
+        sheet_id: int = self.current_sheets[sheet_index]
+        return {"updateSheetProperties":{"properties":{"sheetId": sheet_id,"title": f"{new_name}"},"fields": "title"}}
 
 
-    def format_attendance_sheet(self, worksheet) -> None:    
-        """Formats excel attendance sheet."""
-        pass
+    def add_sheet_request(self, name: str) -> dict:
+        """Add a new sheet request to the Google Sheet."""
+        
+        sheet_id: int = len(self.current_sheets)
+        self.current_sheets.append(name)
 
-
-
-if __name__ == "__main__":
-    gt = GoogleSheetTool()
-    gt.export_workshops_info()
+        return {"addSheet":{"properties":{"sheetId": sheet_id, "title": f"{name}"}}}

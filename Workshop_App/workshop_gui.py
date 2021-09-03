@@ -235,11 +235,14 @@ class Ui_MainWindow(object):
         self.actionUpdate_Credentials.setObjectName("actionUpdate_Credentials")
         self.actionUpdate_Database = QtWidgets.QAction(MainWindow)
         self.actionUpdate_Database.setObjectName("actionUpdate_Database")
-        self.actionExport_Workshops_Info = QtWidgets.QAction(MainWindow)
-        self.actionExport_Workshops_Info.setObjectName("actionExport_Workshops_Info")
+        self.actionExport_To_Excel = QtWidgets.QAction(MainWindow)
+        self.actionExport_To_Excel.setObjectName("actionExport_To_Excel")
+        self.actionExport_to_Google_Sheets = QtWidgets.QAction(MainWindow)
+        self.actionExport_to_Google_Sheets.setObjectName("actionExport_to_Google_Sheets")
         self.menuActions.addAction(self.actionUpdate_Credentials)
         self.menuActions.addAction(self.actionUpdate_Database)
-        self.menuActions.addAction(self.actionExport_Workshops_Info)
+        self.menuActions.addAction(self.actionExport_To_Excel)
+        self.menuActions.addAction(self.actionExport_to_Google_Sheets)
         self.menuView.addAction(self.actionIncrease_CTRL)
         self.menuView.addAction(self.actionDecrease_CTRL)
         self.menubar.addAction(self.menuActions.menuAction())
@@ -276,7 +279,8 @@ class Ui_MainWindow(object):
         self.actionDecrease_CTRL.setShortcut(_translate("MainWindow", "Ctrl+-"))
         self.actionUpdate_Credentials.setText(_translate("MainWindow", "Update Credentials"))
         self.actionUpdate_Database.setText(_translate("MainWindow", "Update Database"))
-        self.actionExport_Workshops_Info.setText(_translate("MainWindow", "Export Workshops Info"))
+        self.actionExport_To_Excel.setText(_translate("MainWindow", "Export to Excel"))
+        self.actionExport_to_Google_Sheets.setText(_translate("MainWindow", "Export to Google Sheets"))
 
 
 if __name__ == "__main__":

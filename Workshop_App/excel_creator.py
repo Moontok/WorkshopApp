@@ -3,10 +3,9 @@ from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Side, numbers
 from openpyxl.styles.borders import Border
 from workshop_tool import WorkshopsTool
-from gui_window import GuiWindow
-from spread_sheet_base_tool import SpreadSheetBaseTool
+from spread_sheet_base_creator import SpreadSheetBaseCreator
 
-class ExcelTool(SpreadSheetBaseTool):
+class ExcelCreator(SpreadSheetBaseCreator):
 
     def __init__(self):
         super().__init__()
@@ -28,10 +27,8 @@ class ExcelTool(SpreadSheetBaseTool):
             "center":Alignment(horizontal="center")
         }
 
-    def export_workshops_info(self, ui: GuiWindow, ws: WorkshopsTool) -> None:
+    def export_workshops_info(self, ws: WorkshopsTool) -> None:
         """Exports the searched workshop information to an .xlsx file."""
-
-        ws.set_search_phrase(ui.lineEditPhrase.text())
 
         workshops: list = ws.get_most_recent_search_results()
 

@@ -3,14 +3,14 @@ from datetime import datetime
 from workshop_tool import WorkshopsTool
 from gui_window import GuiWindow
 
-class SpreadSheetBaseTool(ABC):
+class SpreadSheetBaseCreator(ABC):
     """Abstract class for the spread sheet tools."""
 
     def __init__(self):        
         self.co_op_abbreviations = list()
 
     @abstractmethod
-    def export_workshops_info(self, ui: GuiWindow, ws: WorkshopsTool) -> None:
+    def export_workshops_info(self, ws: WorkshopsTool) -> None:
         """Exports the searched workshop information to a file."""
         raise NotImplementedError
         
