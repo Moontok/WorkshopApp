@@ -22,6 +22,7 @@ class GoogleSheetCreator(SpreadSheetBaseCreator):
         """Exports the searched workshop information to an google sheet."""
                 
         gs = GoogleSheetsTool()
+        workshops: list = ws.get_most_recent_search_results()
 
         spread_sheet_id = "1nYTi7s1VDFXsqupYs7ZPe_9_SrDL2hAAI_i0jnEB5hw"
 
@@ -36,15 +37,17 @@ class GoogleSheetCreator(SpreadSheetBaseCreator):
         requests.append(gs.change_google_sheet_name_request("Workshop Info"))
         requests.append(gs.change_sheet_name_request(0, "Workshops"))
         # requests.append(gs.add_sheet_request("Attendance"))
+        requests.append(gs.format_font_range_request(0, start=(1,1), end=(1,1), font_size=18, bold=True))
+        requests.append(gs.fill_range_request(0, start=(1,1), end=(1,8), fill_color=(0.0, 0.9, 0.7)))
+        requests.append(gs.format_font_range_request(0, start=(len(workshops)+2, 1), end=(len(workshops)+2, 5), bold=True))
+        # requests.append(gs.format_range_outer_border(0, start_column=0, end_column=8))
         
         body = {"requests": requests}
 
         sheet.batchUpdate(spreadsheetId=spread_sheet_id, body=body).execute()        
   
         # Adding Values
-        
 
-        workshops: list = ws.get_most_recent_search_results()
         workshops_rows = list()
         # attendance_rows = list()
 
