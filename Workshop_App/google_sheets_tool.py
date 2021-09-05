@@ -1,54 +1,92 @@
+from googleapiclient.discovery import build
+from google.oauth2 import service_account
 
 class GoogleSheetsTool:
         
-    def __init__(self):
-        self.current_sheets = [0]
+    def __init__(self, spread_sheet_id: str):
+
+        self.spread_sheet_id = spread_sheet_id
+        self.current_sheets: dict = {"Sheet1":0}
+        self.sheet_id_runner: int = 1
+        self.requests = list()
+        self.update_values_requests = list()       
+
+        # Credentials
+        self.service_account_file: str = "google_info.json"
+        self.g_scopes: list = ["https://www.googleapis.com/auth/spreadsheets"]
+        self.creds = service_account.Credentials.from_service_account_file(
+            self.service_account_file,
+            scopes=self.g_scopes
+        )     
+
+        self.service = build("sheets", "v4", credentials=self.creds)
+        self.sheet = self.service.spreadsheets()
 
     
-    def add_row(self, row: list) -> None:
-        pass
+    def values_batch_update(self) -> None:
+        """Batch updates all current value requests."""
+
+        values_body = {"valueInputOption": "USER_ENTERED", "data": self.update_values_requests}
+        self.sheet.values().batchUpdate(spreadsheetId=self.spread_sheet_id, body=values_body).execute()
+        self.update_values_requests.clear()
+
+
+    def batch_update(self) -> None:
+        """Batch updates all current requests."""
+        
+        body: dict = {"requests": self.requests}        
+        self.sheet.batchUpdate(spreadsheetId=self.spread_sheet_id, body=body).execute()
+        self.requests.clear()
     
-    def add_values_request(self, range: str, rows: list) -> dict:
+    def add_values_request(self, range: str, rows: list) -> None:
         """Add values in a range."""
         
-        return {"range": range, "values": rows}
+        self.update_values_requests.append({"range": range, "values": rows})
     
     
-    def change_google_sheet_name_request(self, name: str) -> dict:
+    def change_google_sheet_title_request(self, name: str) -> None:
             "Change the name of the google sheet."
 
-            return {"updateSpreadsheetProperties":{"properties":{"title": f"{name}"},"fields": "title"}}
+            self.requests.append({"updateSpreadsheetProperties":{"properties":{"title": f"{name}"},"fields": "title"}})
 
 
-    def change_sheet_name_request(self, sheet_index: int, new_name: str) -> dict:
+    def change_sheet_name_request(self, old_name: str, new_name: str) -> None:
         """Change the name of the specified sheet."""
         
-        sheet_id: int = self.current_sheets[sheet_index]
-        return {"updateSheetProperties":{"properties":{"sheetId": sheet_id,"title": f"{new_name}"},"fields": "title"}}
+        self.current_sheets[new_name] = self.current_sheets[old_name]
+        del self.current_sheets[old_name]
+
+        self.requests.append({"updateSheetProperties":{"properties":{"sheetId": self.current_sheets[new_name],"title": f"{new_name}"},"fields": "title"}})
 
 
-    def add_sheet_request(self, name: str) -> dict:
+    def add_sheet_request(self, name: str) -> None:
         """Add a new sheet request to the Google Sheet."""
         
-        sheet_id: int = len(self.current_sheets)
-        self.current_sheets.append(name)
+        self.current_sheets[name] = self.sheet_id_runner
+        self.sheet_id_runner += 1
 
-        return {"addSheet":{"properties":{"sheetId": sheet_id, "title": f"{name}"}}}
+        self.requests.append({"addSheet":{"properties":{"sheetId": self.current_sheets[name], "title": f"{name}"}}})
     
     
     def format_font_range_request(
         self,
         sheet_id: int,
-        start: tuple=(0,0),
-        end: tuple=(1,1),
+        range: list,
         font_size: int=12,
         bold: bool = False,
         italic: bool = False,
         text_color: tuple = (0.0, 0.0, 0.0)
-    ) -> dict:
+    ) -> None:
+        range = self.get_range(range)
         format_style = {
             "repeatCell": {
-                "range": {"sheetId": sheet_id, "startColumnIndex": start[0]-1, "startRowIndex": start[1]-1, "endColumnIndex": end[0], "endRowIndex": end[1]},
+                "range": {
+                    "sheetId": sheet_id,
+                    "startColumnIndex": range[0],
+                    "startRowIndex": range[1],
+                    "endColumnIndex": range[2],
+                    "endRowIndex": range[3]
+                },
                 "cell": {
                     "userEnteredFormat": {
                         "textFormat": {
@@ -62,19 +100,25 @@ class GoogleSheetsTool:
                 "fields": "userEnteredFormat(textFormat)"
             }
         }
-        return format_style
+        self.requests.append(format_style)
 
 
     def fill_range_request(
         self,
         sheet_id: int,
-        start: tuple=(0,0),
-        end: tuple=(1,1),
+        range: list,
         fill_color: tuple=(1.0, 1.0, 1.0),
-    ) -> dict:
+    ) -> None:
+        range = self.get_range(range)
         format_style = {
             "repeatCell": {
-                "range": {"sheetId": sheet_id, "startColumnIndex": start[0]-1, "startRowIndex": start[1]-1, "endColumnIndex": end[0], "endRowIndex": end[1]},
+                "range": {
+                    "sheetId": sheet_id,
+                    "startColumnIndex": range[0],
+                    "startRowIndex": range[1],
+                    "endColumnIndex": range[2],
+                    "endRowIndex": range[3]
+                },
                 "cell": {
                     "userEnteredFormat": {
                         "backgroundColor": {"red": fill_color[0], "green": fill_color[1], "blue": fill_color[2]}                        
@@ -83,30 +127,28 @@ class GoogleSheetsTool:
                 "fields": "userEnteredFormat(backgroundColor)"
             }
         }
-        return format_style
+        self.requests.append(format_style)
 
 
     def format_range_request(
         self,
         sheet_id: int,
-        start_column: int,
-        end_column: int, 
-        start_row: int,
-        end_row: int,
+        range: list,
         fill_color: tuple=(1.0, 1.0, 1.0),
         text_color: tuple=(0.0, 0.0, 0.0),
         h_align: str="LEFT",
         font_size: int=12,
         bold_text: bool = False
-    ) -> dict:
+    ) -> None:
+        range = self.get_range(range)
         format_style = {
             "repeatCell": {
                 "range": {
                     "sheetId": sheet_id,
-                    "startRowIndex": start_row,
-                    "endRowIndex": end_row,
-                    "startColumnIndex": start_column,
-                    "endColumnIndex": end_column
+                    "startColumnIndex": range[0],
+                    "startRowIndex": range[1],
+                    "endColumnIndex": range[2],
+                    "endRowIndex": range[3]
                 },
                 "cell": {
                     "userEnteredFormat": {
@@ -122,28 +164,25 @@ class GoogleSheetsTool:
                 "fields": "userEnteredFormat(backgroundColor,textFormat,horizontalAlignment)"
             }
         }
-        return format_style
+        self.requests.append(format_style)
 
 
     def format_range_outer_border(
         self,
         sheet_id: int,
-        start_column: int=0,
-        end_column: int=1, 
-        start_row: int=0,
-        end_row: int=1,
+        range: list,
         type: str="SOLID",
-        color: tuple=(0.0, 0.0, 0.0),
-
-    ) -> dict:
+        color: tuple=(0.0, 0.0, 0.0)
+    ) -> None:
+        range = self.get_range(range)
         border_format = {
             "updateBorders": {
                 "range": {
                     "sheetId": sheet_id,
-                    "startRowIndex": start_row,
-                    "endRowIndex": end_row,
-                    "startColumnIndex": start_column,
-                    "endColumnIndex": end_column
+                    "startColumnIndex": range[0],
+                    "startRowIndex": range[1],
+                    "endColumnIndex": range[2],
+                    "endRowIndex": range[3]
                 },
                 "top": { "style": type, "color": {"red": color[0], "green": color[1], "blue": color[2]}},
                 "bottom": {"style": type, "color": {"red": color[0], "green": color[1], "blue": color[2]}},
@@ -151,49 +190,37 @@ class GoogleSheetsTool:
                 "right": {"style": type,  "color": {"red": color[0], "green": color[1], "blue": color[2]}},
             }
         }
-        return border_format
+        self.requests.append(border_format)
 
 
     def get_range(self, range: str) -> tuple:
+
+        range_values: list = range.split(":")   
+        start_pair: list = self.process_cell_pair(range_values[0])
+        end_pair: list = self.process_cell_pair(range_values[1])
+
+        return [start_pair[0], start_pair[1]-1, end_pair[0] + 1, end_pair[1]]
+
         
-        base_columns = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"        
-        start_column = ""
-        start_column_num = 0
-        start_row = ""        
-        end_column = ""
-        end_column_num = 0
-        end_row = ""
-
-        range_values = range.split(":")
+    def process_cell_pair(self, pair: str) -> list:        
         
-        for char in range_values[0]: 
-            if char.isalpha(): 
-                start_column = "".join([start_column, char]) 
+        base_columns = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        column_num: int = 0
+        row_num: int = 0
+        column_char_count: int = 0
+
+        for i, char in enumerate(pair):
+            if char in base_columns:
+                column_num += base_columns.index(char)
+                column_char_count += 1
             else:
-                start_row = "".join([start_row, char])
+                row_num = int(pair[i:])
+                break
+        
+        if column_char_count > 1:
+            column_num += 1
 
-        for char in range_values[1]: 
-            if char.isalpha(): 
-                end_column = "".join([end_column, char]) 
-            else:
-                end_row = "".join([end_row, char])
-
-        if len(start_column) > 1:
-            start_column_num += 1    
-            for char in start_column:
-                start_column_num += base_columns.index(char)
-        else:
-            start_column_num = base_columns.index(start_column)
-
-        if len(end_column) > 1:
-            end_column_num += 1
-            for char in end_column:
-                end_column_num += base_columns.index(char)
-        else:
-            end_column_num = base_columns.index(end_column)
-
-        return (start_column_num, int(start_row)-1, end_column_num+1, int(end_row))
-                   
+        return [column_num, row_num]               
 
 
 if __name__ == "__main__":
