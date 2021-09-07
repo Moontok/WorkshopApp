@@ -71,10 +71,10 @@ class ExcelCreator(SpreadSheetBaseCreator):
             attendance_sheet.append(["Name", "Email", "District", "Hours", "Dates Attended"])
 
             if len(row[8]) > 0:
-                for partipant in row[8]:
-                    sheet.append([partipant["name"], "", partipant["email"], partipant["school"]])
+                for participant in row[8]:
+                    sheet.append([participant["name"], "", participant["email"], participant["school"]])
 
-                    attendance_row: list = [partipant["name"], partipant["email"], partipant["school"]]
+                    attendance_row: list = [participant["name"], participant["email"], participant["school"]]
                     attendance_sheet.append(attendance_row)
 
             attendance_sheet.append([])

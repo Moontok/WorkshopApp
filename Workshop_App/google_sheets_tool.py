@@ -1,29 +1,53 @@
 # Google Sheets API Doc: https://developers.google.com/sheets/api/reference/rest
 
 
-from googleapiclient.discovery import build
+from googleapiclient.discovery import build, Resource
 from google.oauth2 import service_account
+from typing import Optional
 
 class GoogleSheetsTool:
-        
+    """Wrapper API for the Google API."""
+
     def __init__(self, spread_sheet_id: str):
 
         self.spread_sheet_id = spread_sheet_id
-        self.current_sheets: dict = {"Sheet1":0}
+        self.current_sheets: dict = {"Sheet1":{"id":0, "next_row":1}}
         self.sheet_id_runner: int = 1
         self.requests = list()
-        self.update_values_requests = list()       
+        self.update_values_requests = list()
+        self.service: Optional[Resource] = None
+        self.service: Optional[Resource] = None
+        
 
-        # Credentials
-        self.service_account_file: str = "google_info.json"
-        self.g_scopes: list = ["https://www.googleapis.com/auth/spreadsheets"]
-        self.creds = service_account.Credentials.from_service_account_file(
-            self.service_account_file,
-            scopes=self.g_scopes
-        )     
+    def authenticate(self, service_account_file) -> None:
+        """Athenticate and connect to Google services for spread sheets."""
+        
+        g_scopes: list = ["https://www.googleapis.com/auth/spreadsheets"]
+        creds = service_account.Credentials.from_service_account_file(
+            service_account_file,
+            scopes=g_scopes
+        )
 
-        self.service = build("sheets", "v4", credentials=self.creds)
+        self.service = build("sheets", "v4", credentials=creds)
         self.sheet = self.service.spreadsheets()
+
+
+    def get_next_row(self, sheet_name: str) -> int:
+        """Returns the last row number that has been appended to the specified sheet."""
+
+        return self.current_sheets[sheet_name]["next_row"]
+
+
+    def get_sheet_properties(self) -> dict:
+        """Return the spreadsheet properties as a dict.
+
+        Keys on returned dict:
+            - "properties" - General properties of the entire spreadsheet.
+            - "sheets" - Information on all current sheets in the spreadsheet.
+            - "spreadsheetUrl"
+        """
+
+        return self.sheet.get(spreadsheetId=self.spread_sheet_id).execute()
 
     
     def values_batch_update(self) -> None:
@@ -44,6 +68,16 @@ class GoogleSheetsTool:
     def add_values_request(self, range: str, rows: list) -> None:
         """Add values in a range."""
         
+        processed_range: tuple = self.process_range(range)
+        sheet_name: str = range.split("!")[0]
+        # Rows start at 0 behind the scenes. +1 match spreadsheet starting at 1.
+        next_row: int = (processed_range[2] + 1) + len(rows)
+
+        # Check if you are adding to the end of the sheet.
+        # next_row will be greater than current_sheet:next_row if adding to the end.
+        if self.current_sheets[sheet_name]["next_row"] < next_row:
+            self.current_sheets[sheet_name]["next_row"] = next_row
+
         self.update_values_requests.append({"range": range, "values": rows})
     
     
@@ -59,16 +93,19 @@ class GoogleSheetsTool:
         self.current_sheets[new_name] = self.current_sheets[old_name]
         del self.current_sheets[old_name]
 
-        self.requests.append({"updateSheetProperties":{"properties":{"sheetId": self.current_sheets[new_name],"title": f"{new_name}"},"fields": "title"}})
+        self.requests.append({"updateSheetProperties":{
+            "properties":{"sheetId": self.current_sheets[new_name]["id"],"title": f"{new_name}"},
+            "fields": "title"
+        }})
 
 
     def add_sheet_request(self, name: str) -> None:
         """Add a new sheet request to the Google Sheet."""
         
-        self.current_sheets[name] = self.sheet_id_runner
+        self.current_sheets[name] = {"id": self.sheet_id_runner, "next_row": 0}
         self.sheet_id_runner += 1
 
-        self.requests.append({"addSheet":{"properties":{"sheetId": self.current_sheets[name], "title": f"{name}"}}})
+        self.requests.append({"addSheet":{"properties":{"sheetId": self.current_sheets[name]["id"], "title": f"{name}"}}})
     
 
     def resize_request(self, range: str, size: int) -> None:
@@ -265,10 +302,17 @@ class GoogleSheetsTool:
         """Process the range into sheet_id and starting and ending cell."""
 
         range_parts: list = range.split("!")
-        sheet_id: int = self.current_sheets[range_parts[0]]
-        range_pair_values: list = range_parts[1].split(":")   
-        start_pair: list = self.process_cell_pair(range_pair_values[0])
-        end_pair: list = self.process_cell_pair(range_pair_values[1])
+        sheet_id: int = self.current_sheets[range_parts[0]]["id"]
+        start_pair = list()
+        end_pair = list()        
+        range_pair_values: list = range_parts[1].split(":")
+
+        if len(range_pair_values) > 1:
+            start_pair: list = self.process_cell_pair(range_pair_values[0])
+            end_pair: list = self.process_cell_pair(range_pair_values[1])
+        else:   
+            start_pair: list = self.process_cell_pair(range_pair_values[0])
+            end_pair: list = [-1, -1]
 
         return [sheet_id, start_pair[0], start_pair[1]-1, end_pair[0] + 1, end_pair[1]]
 
@@ -296,5 +340,4 @@ class GoogleSheetsTool:
 
 
 if __name__ == "__main__":
-    gs = GoogleSheetsTool()
-    print(gs.process_range("A1:B1"))
+    print("This is a module...")

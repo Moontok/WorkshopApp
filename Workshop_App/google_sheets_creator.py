@@ -13,27 +13,74 @@ class GoogleSheetCreator(SpreadSheetBaseCreator):
         spread_sheet_id = "1nYTi7s1VDFXsqupYs7ZPe_9_SrDL2hAAI_i0jnEB5hw"
 
         gs = GoogleSheetsTool(spread_sheet_id)
+        gs.authenticate("google_info.json")
+
         workshops: list = ws.get_most_recent_search_results()
 
-        workshops_rows = list()
+        workshop_rows = list()
 
         for workshop in workshops:
             row: list = self.build_row_for_workshop(ws.get_co_op_info(), workshop)
-            workshops_rows.append(row[:8])
-        workshops_rows.sort()
-        workshops_rows.append([])
-        workshops_rows.append(["Total:", f"{len(workshops)}", "", "Signed Up:", f"=SUM(E3:E{len(workshops)+3})"])        
+            workshop_rows.append(row)
+        workshop_rows.sort()
 
-        self.format_workshops_sheet(gs, len(workshops))
-
-        gs.add_values_request("Workshops!A1", [["Workshops At A Glance"]])
-        gs.add_values_request("Workshops!A3", workshops_rows)
-        gs.values_batch_update()
-        
+        gs.change_google_sheet_title_request("Workshop Info")
+        gs.change_sheet_name_request("Sheet1", "Workshops")        
         gs.add_sheet_request("Attendance")
         gs.batch_update()
 
-        self.format_attendance_sheet(gs)
+        gs.add_values_request("Workshops!A1", [
+            ["Workshops At A Glance"],
+            []
+        ])
+
+        gs.add_values_request("Attendance!A1:C2", [
+            ["Workshop Name:", "", workshops[0]["workshop_name"]],
+            ["Workshop Dates:", "", self.format_dates(workshops[0])]
+        ])
+
+        for row in workshop_rows:
+            gs.add_values_request(f"Workshops!A{gs.get_next_row('Workshops')}", [row[:8]])
+            co_op_sheet: str = row[0]
+            gs.add_sheet_request(co_op_sheet)
+            gs.add_values_request(f"{co_op_sheet}!A1", [
+                row[:3],
+                ["Dates:", ", ".join(row[11])],
+                ["Credit:", row[12]],
+                ["Fee:", row[13]],
+                ["Description:", row[9]],
+                ["Session Link:", row[7]],
+                ["Signed Up"]
+            ])
+            gs.add_values_request(f"Attendance!A{gs.get_next_row('Attendance')}", [
+                [row[0], row[1], row[7]],
+                ["Name", "Email", "District", "Hours", "Dates Attended"]
+            ])
+
+            if len(row[8]) > 0:
+                for participant in row[8]:
+                    gs.add_values_request(f"{co_op_sheet}!A{gs.get_next_row(co_op_sheet)}", [
+                        [participant["name"], "", participant["email"], participant["school"]]
+                    ])
+                    gs.add_values_request(f"Attendance!A{gs.get_next_row('Attendance')}", [
+                        [participant["name"], "", participant["email"], participant["school"]]
+                    ])
+            gs.add_values_request(f"Attendance!A{gs.get_next_row('Attendance')}", [
+                    []
+            ])
+            self.co_op_abbreviations.append(row[0])
+            # self.format_generated_ws_sheet(co_op_sheet)
+
+        gs.add_values_request(
+            f"Workshops!A{len(workshops)+4}",
+            [["Total:", f"{len(workshops)}", "", "Signed Up:", f"=SUM(E3:E{len(workshops)+3})"]]
+        )
+
+        gs.batch_update()
+        gs.values_batch_update()
+
+        self.format_workshops_sheet(gs, len(workshops))
+        self.format_attendance_sheet(gs)        
 
 
     def format_workshops_sheet(self, gs: GoogleSheetsTool, number_of_workshops: int) -> None:
@@ -41,8 +88,6 @@ class GoogleSheetCreator(SpreadSheetBaseCreator):
         
         sheet_name: str = "Workshops"
 
-        gs.change_google_sheet_title_request("Workshop Info")
-        gs.change_sheet_name_request("Sheet1", "Workshops")
         gs.format_font_range_request(f"{sheet_name}!A1:A1", font_size=18, bold=True)
         gs.fill_range_request(f"{sheet_name}!A1:H1", fill_color=(0.68, 0.92, 0.68))
         gs.format_font_range_request(f"{sheet_name}!A{number_of_workshops + 4}:E{number_of_workshops + 4}", bold=True)
@@ -89,6 +134,9 @@ class GoogleSheetCreator(SpreadSheetBaseCreator):
         gs.fill_range_request(f"{sheet_name}!C1:E2", (0.2, 0.2, 0.2))
         gs.align_cells_range_request(f"{sheet_name}!C1:E2", "CENTER")
         gs.set_outer_border_range_request(f"{sheet_name}!A1:E2", "SOLID_THICK")
+
+        for row in range(4, gs.get_next_row(sheet_name)):
+            pass
         
         gs.batch_update()
 
