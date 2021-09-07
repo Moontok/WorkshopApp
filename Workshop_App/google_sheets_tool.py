@@ -1,3 +1,6 @@
+# Google Sheets API Doc: https://developers.google.com/sheets/api/reference/rest
+
+
 from googleapiclient.discovery import build
 from google.oauth2 import service_account
 
@@ -109,7 +112,33 @@ class GoogleSheetsTool:
         self.requests.append(format_style)
 
 
-    def merge_cell_range_request(self, range: str, merge_type: str="MERGE_ALL") -> None:
+    def align_cells_range_request(self, range: str, horizontal: str="LEFT", vertical: str="BOTTOM") -> None:
+        """Align cells in the provided range based on alignment provided.
+            - Horizontal: LEFT, CENTER, RIGHT
+            - Vertical: TOP, MIDDLE, BOTTOM
+        """
+        processed_range = self.process_range(range)
+        format_style = {
+            "repeatCell": {
+                "range": {
+                    "sheetId": processed_range[0],
+                    "startColumnIndex": processed_range[1],
+                    "startRowIndex": processed_range[2],
+                    "endColumnIndex": processed_range[3],
+                    "endRowIndex": processed_range[4]
+                },
+                "cell": {
+                    "userEnteredFormat": {
+                        "horizontalAlignment": horizontal,
+                        "verticalAlignment": vertical                     
+                    }
+                },
+                "fields": "userEnteredFormat(horizontalAlignment, verticalAlignment)"
+            }
+        }
+        self.requests.append(format_style)
+
+    def merge_cells_range_request(self, range: str, merge_type: str="MERGE_ALL") -> None:
         """Merge cells in the provided range based on merge type.
         Merge Types: MERGE_ALL, MERGE_COLUMNS, MERGE_ROWS
         """
@@ -173,7 +202,12 @@ class GoogleSheetsTool:
 
 
     def fill_range_request(self, range: str, fill_color: tuple=(1, 1, 1)) -> None:
-        """Set the background fill for a range of cells."""
+        """Set the background fill for a range of cells.
+        Amount of (Red, Green, Blue)
+            - Red: 0.0 - 1.0
+            - Green: 0.0 - 1.0
+            - Blue:  0.0 - 1.0
+        """
 
         processed_range = self.process_range(range)
         format_style = {
@@ -196,8 +230,17 @@ class GoogleSheetsTool:
         self.requests.append(format_style)
 
 
-    def format_range_outer_border(self,  range: str, type: str="SOLID", color: tuple=(0, 0, 0)) -> None:
-        """Set the outer border for a range of cells."""
+    def set_outer_border_range_request(self,  range: str, type: str="SOLID", color: tuple=(0, 0, 0)) -> None:
+        """Set the outer border for a range of cells.
+        Border types:
+            - DOTTED
+            - DASHED
+            - SOLID
+            - SOLID_MEDIUM
+            - SOLID_THICK
+            - NONE
+            - DOUBLE
+        """
 
         processed_range = self.process_range(range)
         border_format = {

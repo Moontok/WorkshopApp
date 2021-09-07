@@ -30,40 +30,67 @@ class GoogleSheetCreator(SpreadSheetBaseCreator):
         gs.add_values_request("Workshops!A3", workshops_rows)
         gs.values_batch_update()
         
-        # gs.add_sheet_request("Attendance")
-        # gs.batch_update()
+        gs.add_sheet_request("Attendance")
+        gs.batch_update()
+
+        self.format_attendance_sheet(gs)
 
 
     def format_workshops_sheet(self, gs: GoogleSheetsTool, number_of_workshops: int) -> None:
         """Formats excel workshops sheet."""
         
+        sheet_name: str = "Workshops"
+
         gs.change_google_sheet_title_request("Workshop Info")
         gs.change_sheet_name_request("Sheet1", "Workshops")
-        gs.format_font_range_request("Workshops!A1:A1", font_size=18, bold=True)
-        gs.fill_range_request("Workshops!A1:H1", fill_color=(0.0, 0.9, 0.7))
-        gs.format_font_range_request(f"Workshops!A{number_of_workshops + 4}:E{number_of_workshops + 4}", bold=True)
-        gs.format_range_outer_border("Workshops!A1:H1")
-        gs.merge_cell_range_request("Workshops!A1:H1")
-        gs.resize_request("Workshops!A:A", 100)
-        gs.resize_request("Workshops!B:B", 50)
-        gs.resize_request("Workshops!C:C", 500)
-        gs.resize_request("Workshops!D:D", 120)
-        gs.resize_request("Workshops!E:F", 40)
-        gs.resize_request("Workshops!G:G", 350)
-        gs.resize_request("Workshops!H:H", 450)
-        gs.resize_request("Workshops!1:1", 30)
+        gs.format_font_range_request(f"{sheet_name}!A1:A1", font_size=18, bold=True)
+        gs.fill_range_request(f"{sheet_name}!A1:H1", fill_color=(0.68, 0.92, 0.68))
+        gs.format_font_range_request(f"{sheet_name}!A{number_of_workshops + 4}:E{number_of_workshops + 4}", bold=True)
+        gs.set_outer_border_range_request(f"{sheet_name}!A1:H1")
+        gs.merge_cells_range_request(f"{sheet_name}!A1:H1")
+        gs.resize_request(f"{sheet_name}!A:A", 100)
+        gs.resize_request(f"{sheet_name}!B:B", 50)
+        gs.resize_request(f"{sheet_name}!C:C", 500)
+        gs.resize_request(f"{sheet_name}!D:D", 120)
+        gs.resize_request(f"{sheet_name}!E:F", 40)
+        gs.resize_request(f"{sheet_name}!G:G", 350)
+        gs.resize_request(f"{sheet_name}!H:H", 450)
+        gs.resize_request(f"{sheet_name}!1:1", 30)
 
         gs.batch_update()
 
 
-    def format_generated_ws_sheet(self, worksheet) -> None:
+    def format_generated_ws_sheet(self, gs: GoogleSheetsTool) -> None:
         """General format for each Co-op sheet."""
+        
         pass
 
 
-    def format_attendance_sheet(self, worksheet) -> None:    
+    def format_attendance_sheet(self, gs: GoogleSheetsTool) -> None:    
         """Formats excel attendance sheet."""
-        pass
+        
+        sheet_name: str = "Attendance"
+
+        gs.merge_cells_range_request(f"{sheet_name}!A1:B1")
+        gs.merge_cells_range_request(f"{sheet_name}!A2:B2")
+        gs.merge_cells_range_request(f"{sheet_name}!C1:E1")
+        gs.merge_cells_range_request(f"{sheet_name}!C2:E2")
+
+        gs.resize_request(f"{sheet_name}!A:A", 200)
+        gs.resize_request(f"{sheet_name}!B:B", 200)
+        gs.resize_request(f"{sheet_name}!C:C", 200)
+        gs.resize_request(f"{sheet_name}!D:D", 100)
+        gs.resize_request(f"{sheet_name}!E:E", 200)
+
+        gs.format_font_range_request(f"{sheet_name}!A1:A2", font_size=16, bold=True)
+        gs.align_cells_range_request(f"{sheet_name}!A1:A2", "RIGHT")
+
+        gs.format_font_range_request(f"{sheet_name}!C1:E2", font_size=16, bold=True, text_color=(0.68, 0.92, 0.68))
+        gs.fill_range_request(f"{sheet_name}!C1:E2", (0.2, 0.2, 0.2))
+        gs.align_cells_range_request(f"{sheet_name}!C1:E2", "CENTER")
+        gs.set_outer_border_range_request(f"{sheet_name}!A1:E2", "SOLID_THICK")
+        
+        gs.batch_update()
 
 
 if __name__ == "__main__":

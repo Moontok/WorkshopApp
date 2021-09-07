@@ -179,7 +179,7 @@ class ExcelCreator(SpreadSheetBaseCreator):
         worksheet["A1"].font = title_header_font 
         worksheet["A2"].font = title_header_font
         worksheet["A1"].alignment = self.align["right"]
-        worksheet["A2"].alignment = self.align["center"]        
+        worksheet["A2"].alignment = self.align["right"]        
         worksheet["A1"].border = Border(left=self.line["thick"], top=self.line["thick"], right=self.line["thick"])
         worksheet["A2"].border = Border(left=self.line["thick"], bottom=self.line["thick"], right=self.line["thick"])
         worksheet["B1"].border = Border(top=self.line["thick"])
