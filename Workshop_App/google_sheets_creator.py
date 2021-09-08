@@ -1,6 +1,7 @@
 from workshop_tool import WorkshopsTool
 from spread_sheet_base_creator import SpreadSheetBaseCreator
 from google_sheets_tool import GoogleSheetsTool
+from gui_window import GuiWindow
 from typing import Optional
 
 class GoogleSheetCreator(SpreadSheetBaseCreator):
@@ -15,12 +16,16 @@ class GoogleSheetCreator(SpreadSheetBaseCreator):
         }
 
 
-    def export_workshops_info(self, ws: WorkshopsTool) -> None:
+    def export_workshops_info(self, ws: WorkshopsTool, ui: GuiWindow) -> None:
         """Exports the searched workshop information to an google sheet."""
-        spread_sheet_id = "1nYTi7s1VDFXsqupYs7ZPe_9_SrDL2hAAI_i0jnEB5hw"
 
-        gs = GoogleSheetsTool(spread_sheet_id)
-        gs.authenticate("google_info.json")
+        gs = GoogleSheetsTool()
+        file_and_folder_info: Optional[tuple] = ui.google_filename_popup_box()
+        if file_and_folder_info != None:
+            gs.set_file_and_folder_info(file_and_folder_info)
+            gs.authenticate("google_info.json")
+        else:
+            return        
 
         workshops: list = ws.get_most_recent_search_results()
 
@@ -31,7 +36,6 @@ class GoogleSheetCreator(SpreadSheetBaseCreator):
             workshop_rows.append(row)
         workshop_rows.sort()
 
-        gs.change_google_sheet_title_request("Workshop Info")
         gs.change_sheet_name_request("Sheet1", "Workshops")        
         gs.add_sheet_request("Attendance")
         gs.batch_update()
@@ -88,7 +92,7 @@ class GoogleSheetCreator(SpreadSheetBaseCreator):
         gs.values_batch_update()
 
         self.format_workshops_sheet(gs, len(workshops))
-        self.format_attendance_sheet(gs, workshop_rows)        
+        self.format_attendance_sheet(gs, workshop_rows)
 
 
     def format_workshops_sheet(self, gs: GoogleSheetsTool, number_of_workshops: int) -> None:

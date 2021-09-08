@@ -33,7 +33,7 @@ def main() -> None:
     ui.actionIncrease_CTRL.triggered.connect(ui.increase_font)
     ui.actionDecrease_CTRL.triggered.connect(ui.decrease_font)
     ui.actionExport_To_Excel.triggered.connect(lambda: ex_tool.export_workshops_info(ws))
-    ui.actionExport_to_Google_Sheets.triggered.connect(lambda: google_tool.export_workshops_info(ws))
+    ui.actionExport_to_Google_Sheets.triggered.connect(lambda: google_tool.export_workshops_info(ws, ui))
     ui.actionUpdate_Credentials.triggered.connect(lambda: ui.creds_popup_box(ws))
     ui.actionUpdate_Database.triggered.connect( lambda: helper_functions.update_database(main_window, ws, ui))
 

@@ -8,21 +8,23 @@ from typing import Optional
 class GoogleSheetsTool:
     """Wrapper API for the Google API."""
 
-    def __init__(self, spread_sheet_id: str):
+    def __init__(self):
 
-        self.spreadsheet_id = spread_sheet_id
+        self.filename = ""
+        self.spreadsheet_id = ""
+        self.folder_id = ""
         self.current_sheets: dict = {"Sheet1":{"id":0, "next_row":1}}
         self.sheet_id_runner: int = 1
         self.requests = list()
         self.update_values_requests = list()
         self.service: Optional[Resource] = None
         self.sheet: Optional[Resource] = None
-        
+
 
     def authenticate(self, service_account_file) -> None:
         """Athenticate and connect to Google services for spread sheets."""
         
-        g_scopes: list = ["https://www.googleapis.com/auth/spreadsheets"]
+        g_scopes: list = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
         creds = service_account.Credentials.from_service_account_file(
             service_account_file,
             scopes=g_scopes
@@ -30,6 +32,21 @@ class GoogleSheetsTool:
 
         self.service = build("sheets", "v4", credentials=creds)
         self.sheet = self.service.spreadsheets()
+
+        response: dict = self.build_spread_sheet(creds)
+        self.spreadsheet_id = response["id"]
+
+
+    def build_spread_sheet(self, creds) -> dict:
+        """Create a google sheet in the "parents" folder. """
+
+        drive = build('drive', 'v3', credentials=creds)
+        file_metadata = {
+            "name": self.filename,
+            "parents": [self.folder_id],
+            "mimeType": "application/vnd.google-apps.spreadsheet"
+        }
+        return drive.files().create(body=file_metadata).execute()
 
 
     def get_values_by_range(self, cell_range: str) -> Optional[dict]:
@@ -54,6 +71,13 @@ class GoogleSheetsTool:
         """
 
         return self.sheet.get(spreadsheetId=self.spreadsheet_id).execute()
+
+
+    def set_file_and_folder_info(self, file_and_folder_info: tuple) -> None:
+        """Set the filename and folder information for the sheet export."""
+
+        self.filename = file_and_folder_info[0]
+        self.folder_id = file_and_folder_info[1]
 
     
     def values_batch_update(self) -> None:

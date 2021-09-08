@@ -5,10 +5,12 @@ This allows to extend the class with custom functionally and not worry about rec
 the workshopGUI from QT Designer.
 '''
 
+from google_filename_dialog import Ui_GoogleFilenameDialog
 from workshop_tool import WorkshopsTool
 from PyQt5.QtWidgets import QDialog, QMessageBox, QLineEdit, QMainWindow
 from login_dialog import Ui_LoginDialog
 from workshop_gui import Ui_MainWindow
+from typing import Optional
 
 
 class GuiWindow(Ui_MainWindow):
@@ -64,6 +66,32 @@ class GuiWindow(Ui_MainWindow):
             self.change_creds_successful(False)
 
 
+    def google_filename_popup_box(self) -> Optional[tuple]:
+        '''Open a custom dialog box to export googlesheet to a folder.'''
+
+        google_filename_dialog = QDialog()
+        ui = Ui_GoogleFilenameDialog()
+        ui.setupUi(google_filename_dialog)
+        google_filename_dialog.show()
+        ok: bool = google_filename_dialog.exec_()        
+        
+        if ok and len(ui.filename_edit.text()) > 0 and len(ui.folder_id_edit.text()) > 0:
+            filename: str = ui.filename_edit.text()
+            folder_url: str = ui.folder_id_edit.text()
+            folder_id: str = self.strip_folder_id(folder_url)
+            self.export_googlesheet_successful(True)
+            return (filename, folder_id)
+        else:
+            self.export_googlesheet_successful(False)
+            return None
+
+
+    def strip_folder_id(self, url: str) -> str:
+        """Returns teh folder ID"""
+
+        return url.split("folders/")[1]
+
+
     def change_creds_successful(self, success: bool) -> None:
         '''Pops-up message if successful update of user information or not.'''
 
@@ -75,6 +103,22 @@ class GuiWindow(Ui_MainWindow):
             msg.setIcon(QMessageBox.Information)
         else:
             msg.setText('Your credentials have NOT been updated!')
+            msg.setIcon(QMessageBox.Critical)
+
+        msg.exec_()
+
+
+    def export_googlesheet_successful(self, success: bool) -> None:
+        '''Pops-up message if successful filename and folder provided.'''
+
+        msg = QMessageBox()
+        msg.setWindowTitle('Results')
+
+        if success:
+            msg.setText('Your file is being created!')
+            msg.setIcon(QMessageBox.Information)
+        else:
+            msg.setText('Your file has not been created!')
             msg.setIcon(QMessageBox.Critical)
 
         msg.exec_()
