@@ -1,33 +1,10 @@
-from abc import ABC, abstractmethod
 from datetime import datetime
-from workshop_tool import WorkshopsTool
-from gui_window import GuiWindow
 
-class SpreadSheetBaseCreator(ABC):
+class SpreadSheetBaseCreator:
     """Abstract class for the spread sheet tools."""
 
     def __init__(self):        
         self.co_op_abbreviations = list()
-
-    @abstractmethod
-    def export_workshops_info(self, ws: WorkshopsTool) -> None:
-        """Exports the searched workshop information to a file."""
-        raise NotImplementedError
-        
-    @abstractmethod
-    def format_workshops_sheet(self, worksheet) -> None:
-        """Formats workshops sheet."""
-        raise NotImplementedError
-
-    @abstractmethod
-    def format_generated_ws_sheet(self, worksheet) -> None:
-        """General format for each Co-op sheet."""        
-        raise NotImplementedError
-
-    @abstractmethod
-    def format_attendance_sheet(self, worksheet) -> None:    
-        """Formats attendance sheet."""
-        raise NotImplementedError 
 
     def build_row_for_workshop(self, co_op_session_location: dict, workshop: dict) -> list:
         """Build out the contents of one spread sheet row entry. """

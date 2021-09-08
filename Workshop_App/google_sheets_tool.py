@@ -10,13 +10,13 @@ class GoogleSheetsTool:
 
     def __init__(self, spread_sheet_id: str):
 
-        self.spread_sheet_id = spread_sheet_id
+        self.spreadsheet_id = spread_sheet_id
         self.current_sheets: dict = {"Sheet1":{"id":0, "next_row":1}}
         self.sheet_id_runner: int = 1
         self.requests = list()
         self.update_values_requests = list()
         self.service: Optional[Resource] = None
-        self.service: Optional[Resource] = None
+        self.sheet: Optional[Resource] = None
         
 
     def authenticate(self, service_account_file) -> None:
@@ -30,6 +30,12 @@ class GoogleSheetsTool:
 
         self.service = build("sheets", "v4", credentials=creds)
         self.sheet = self.service.spreadsheets()
+
+
+    def get_values_by_range(self, cell_range: str) -> Optional[dict]:
+        """Returns the values of a specified range."""
+        response = self.sheet.values().get(spreadsheetId=self.spreadsheet_id, range=cell_range).execute()
+        return response.get("values")
 
 
     def get_next_row(self, sheet_name: str) -> int:
@@ -47,14 +53,14 @@ class GoogleSheetsTool:
             - "spreadsheetUrl"
         """
 
-        return self.sheet.get(spreadsheetId=self.spread_sheet_id).execute()
+        return self.sheet.get(spreadsheetId=self.spreadsheet_id).execute()
 
     
     def values_batch_update(self) -> None:
         """Batch updates all current value requests."""
 
         values_body = {"valueInputOption": "USER_ENTERED", "data": self.update_values_requests}
-        self.sheet.values().batchUpdate(spreadsheetId=self.spread_sheet_id, body=values_body).execute()
+        self.sheet.values().batchUpdate(spreadsheetId=self.spreadsheet_id, body=values_body).execute()
         self.update_values_requests.clear()
 
 
@@ -62,14 +68,14 @@ class GoogleSheetsTool:
         """Batch updates all current requests."""
         
         body: dict = {"requests": self.requests}        
-        self.sheet.batchUpdate(spreadsheetId=self.spread_sheet_id, body=body).execute()
+        self.sheet.batchUpdate(spreadsheetId=self.spreadsheet_id, body=body).execute()
         self.requests.clear()
     
-    def add_values_request(self, range: str, rows: list) -> None:
+    def add_values_request(self, cell_range: str, rows: list) -> None:
         """Add values in a range."""
         
-        processed_range: tuple = self.process_range(range)
-        sheet_name: str = range.split("!")[0]
+        processed_range: tuple = self.process_range(cell_range)
+        sheet_name: str = cell_range.split("!")[0]
         # Rows start at 0 behind the scenes. +1 match spreadsheet starting at 1.
         next_row: int = (processed_range[2] + 1) + len(rows)
 
@@ -78,8 +84,8 @@ class GoogleSheetsTool:
         if self.current_sheets[sheet_name]["next_row"] < next_row:
             self.current_sheets[sheet_name]["next_row"] = next_row
 
-        self.update_values_requests.append({"range": range, "values": rows})
-    
+        self.update_values_requests.append({"range": cell_range, "values": rows})
+
     
     def change_google_sheet_title_request(self, name: str) -> None:
             "Change the name of the google sheet."
@@ -108,7 +114,7 @@ class GoogleSheetsTool:
         self.requests.append({"addSheet":{"properties":{"sheetId": self.current_sheets[name]["id"], "title": f"{name}"}}})
     
 
-    def resize_request(self, range: str, size: int) -> None:
+    def resize_request(self, cell_range: str, size: int) -> None:
         """Resize a column or row by specified number of pixels.
 
         Range formats:
@@ -118,7 +124,7 @@ class GoogleSheetsTool:
                 - Ex. "Sheet1!1:1" will resize row 1.
         """
 
-        processed_range: list = self.process_range(range)
+        processed_range: list = self.process_range(cell_range)
         dimension: str = ""
         start_index: int = 0
         end_index: int = 0
@@ -149,12 +155,22 @@ class GoogleSheetsTool:
         self.requests.append(format_style)
 
 
-    def align_cells_range_request(self, range: str, horizontal: str="LEFT", vertical: str="BOTTOM") -> None:
-        """Align cells in the provided range based on alignment provided.
+    def align_and_wrap_cells_range_request(
+        self, 
+        cell_range: str, 
+        horizontal: str="LEFT", 
+        vertical: str="BOTTOM",
+        wrapping: str="CLIP"
+    ) -> None:
+        """Align and wrap cells in the provided range based on alignment provided.
+
+        Alignment:
             - Horizontal: LEFT, CENTER, RIGHT
             - Vertical: TOP, MIDDLE, BOTTOM
+
+        Wrapping: OVERFLOW_CELL, CLIP, WRAP
         """
-        processed_range = self.process_range(range)
+        processed_range = self.process_range(cell_range)
         format_style = {
             "repeatCell": {
                 "range": {
@@ -167,20 +183,22 @@ class GoogleSheetsTool:
                 "cell": {
                     "userEnteredFormat": {
                         "horizontalAlignment": horizontal,
-                        "verticalAlignment": vertical                     
+                        "verticalAlignment": vertical,
+                        "wrapStrategy": wrapping              
                     }
                 },
-                "fields": "userEnteredFormat(horizontalAlignment, verticalAlignment)"
+                "fields": "userEnteredFormat(horizontalAlignment, verticalAlignment, wrapStrategy)"
             }
         }
         self.requests.append(format_style)
 
-    def merge_cells_range_request(self, range: str, merge_type: str="MERGE_ALL") -> None:
+
+    def merge_cells_range_request(self, cell_range: str, merge_type: str="MERGE_ALL") -> None:
         """Merge cells in the provided range based on merge type.
         Merge Types: MERGE_ALL, MERGE_COLUMNS, MERGE_ROWS
         """
         
-        processed_range: list = self.process_range(range)
+        processed_range: list = self.process_range(cell_range)
         format_style = {
             "mergeCells": {
                 "range": {
@@ -198,7 +216,7 @@ class GoogleSheetsTool:
     
     def format_font_range_request(
         self,
-        range: str,
+        cell_range: str,
         font_family: str = "Arial",
         font_size: int=12,
         bold: bool = False,
@@ -209,7 +227,7 @@ class GoogleSheetsTool:
     ) -> None:
         """Set the font for a range of cells."""
 
-        processed_range = self.process_range(range)
+        processed_range = self.process_range(cell_range)
         format_style = {
             "repeatCell": {
                 "range": {
@@ -238,7 +256,7 @@ class GoogleSheetsTool:
         self.requests.append(format_style)
 
 
-    def fill_range_request(self, range: str, fill_color: tuple=(1, 1, 1)) -> None:
+    def fill_range_request(self, cell_range: str, fill_color: tuple=(1, 1, 1)) -> None:
         """Set the background fill for a range of cells.
         Amount of (Red, Green, Blue)
             - Red: 0.0 - 1.0
@@ -246,7 +264,7 @@ class GoogleSheetsTool:
             - Blue:  0.0 - 1.0
         """
 
-        processed_range = self.process_range(range)
+        processed_range = self.process_range(cell_range)
         format_style = {
             "repeatCell": {
                 "range": {
@@ -267,7 +285,7 @@ class GoogleSheetsTool:
         self.requests.append(format_style)
 
 
-    def set_outer_border_range_request(self,  range: str, type: str="SOLID", color: tuple=(0, 0, 0)) -> None:
+    def set_outer_border_range_request(self,  cell_range: str, type: str="SOLID", color: tuple=(0, 0, 0)) -> None:
         """Set the outer border for a range of cells.
         Border types:
             - DOTTED
@@ -279,7 +297,7 @@ class GoogleSheetsTool:
             - DOUBLE
         """
 
-        processed_range = self.process_range(range)
+        processed_range = self.process_range(cell_range)
         border_format = {
             "updateBorders": {
                 "range": {
@@ -298,10 +316,38 @@ class GoogleSheetsTool:
         self.requests.append(border_format)
 
 
-    def process_range(self, range: str) -> tuple:
+    def set_bottom_border_range_request(self,  cell_range: str, type: str="SOLID", color: tuple=(0, 0, 0)) -> None:
+        """Set the bottom border for a range of cells.
+        Border types:
+            - DOTTED
+            - DASHED
+            - SOLID
+            - SOLID_MEDIUM
+            - SOLID_THICK
+            - NONE
+            - DOUBLE
+        """
+
+        processed_range = self.process_range(cell_range)
+        border_format = {
+            "updateBorders": {
+                "range": {
+                    "sheetId": processed_range[0],
+                    "startColumnIndex": processed_range[1],
+                    "startRowIndex": processed_range[2],
+                    "endColumnIndex": processed_range[3],
+                    "endRowIndex": processed_range[4]
+                },
+                "bottom": {"style": type, "color": {"red": color[0], "green": color[1], "blue": color[2]}}
+            }
+        }
+        self.requests.append(border_format)
+
+
+    def process_range(self, cell_range: str) -> tuple:
         """Process the range into sheet_id and starting and ending cell."""
 
-        range_parts: list = range.split("!")
+        range_parts: list = cell_range.split("!")
         sheet_id: int = self.current_sheets[range_parts[0]]["id"]
         start_pair = list()
         end_pair = list()        

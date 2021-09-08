@@ -155,7 +155,7 @@ class ExcelCreator(SpreadSheetBaseCreator):
 
         for row in range(8, worksheet._current_row + 1):
             worksheet.merge_cells(f"A{row}:B{row}")
-            worksheet[f"D{row}"].alignment = self.align["fill"]
+            worksheet[f"D{row}"].alignment = self.align["left"]
 
 
     def format_attendance_sheet(self, worksheet) -> None:    
@@ -214,7 +214,7 @@ class ExcelCreator(SpreadSheetBaseCreator):
                     current_cell.font = coop_info_font
                     current_cell.fill = self.fill["light_green"]
                     current_cell.border = coop_info_border
-                    current_cell.alignment = self.align["right"]                
+                    current_cell.alignment = self.align["left"]                
                 worksheet.merge_cells(f"C{row}:E{row}")
                 worksheet[f"C{row}"] = f'=HYPERLINK("{worksheet[f"C{row}"].value}")'
             elif current_cell.value == "Name":
@@ -233,10 +233,7 @@ class ExcelCreator(SpreadSheetBaseCreator):
                     if column not in columns[:3]:
                         current_cell.alignment = self.align["right"]
                     else:
-                        current_cell.alignment = self.align["fill"]
-            else:
-                for column in columns:
-                    current_cell = worksheet[f"{column}{row}"]              
+                        current_cell.alignment = self.align["left"]
 
 
 if __name__ == "__main__":
