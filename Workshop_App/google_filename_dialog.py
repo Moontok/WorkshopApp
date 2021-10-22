@@ -70,6 +70,7 @@ class Ui_GoogleFilenameDialog(object):
         self.verticalLayout.addWidget(self.drive_folder_info_label)
         self.account_label = QtWidgets.QLabel(self.layoutWidget)
         self.account_label.setMaximumSize(QtCore.QSize(16777215, 30))
+        self.account_label.setTextInteractionFlags(QtCore.Qt.TextSelectableByMouse)
         self.account_label.setObjectName("account_label")
         self.verticalLayout.addWidget(self.account_label)
         self.horizontalLayout_4 = QtWidgets.QHBoxLayout()

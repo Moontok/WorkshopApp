@@ -147,6 +147,9 @@
             <property name="text">
              <string> pythonsheets@python-sheets-313803.iam.gserviceaccount.com</string>
             </property>
+            <property name="textInteractionFlags">
+             <set>Qt::TextSelectableByMouse</set>
+            </property>
            </widget>
           </item>
           <item>
