@@ -15,7 +15,6 @@ class GoogleSheetCreator(SpreadSheetBaseCreator):
             "dark_grey": (0.2, 0.2, 0.2)
         }
 
-
     def export_workshops_info(self, ws: WorkshopsTool, ui: GuiWindow) -> None:
         """Exports the searched workshop information to an google sheet."""
 
@@ -126,7 +125,6 @@ class GoogleSheetCreator(SpreadSheetBaseCreator):
 
         gs.batch_update()
 
-
     def format_generated_ws_sheet(self, gs: GoogleSheetsTool, sheet_name: str, number_of_participants: int) -> None:
         """General format for each Co-op sheet."""        
 
@@ -154,7 +152,6 @@ class GoogleSheetCreator(SpreadSheetBaseCreator):
         for row in range(8, number_of_participants + 8):
             gs.merge_cells_range_request(f"{sheet_name}!A{row}:B{row}")
             gs.align_and_wrap_cells_range_request(f"{sheet_name}!A{row}:D{row}", wrapping="CLIP")
-
 
     def format_attendance_sheet(self, gs: GoogleSheetsTool, workshop_rows: list) -> None:    
         """Formats excel attendance sheet."""
