@@ -51,11 +51,21 @@ class GoogleSheetCreator(SpreadSheetBaseCreator):
             []
         ])
 
+        current_co_ops: dict = {}
+
         for row in workshop_rows:
             gs.add_values_request(f"Workshops!A{gs.get_next_row('Workshops')}", [row[:8]])
-            co_op_sheet: str = row[0]
-            gs.add_sheet_request(co_op_sheet)
-            gs.add_values_request(f"{co_op_sheet}!A1", [
+            
+            co_op_name: str = row[0]
+
+            if co_op_name in current_co_ops:
+                current_co_ops[co_op_name] += 1
+                co_op_name = f"{co_op_name}_{current_co_ops[co_op_name]}"
+            else:
+                current_co_ops[co_op_name] = 1
+
+            gs.add_sheet_request(co_op_name)
+            gs.add_values_request(f"{co_op_name}!A1", [
                 row[:3],
                 ["Dates:", ", ".join(row[11])],
                 ["Credit:", row[12]],
@@ -71,7 +81,7 @@ class GoogleSheetCreator(SpreadSheetBaseCreator):
 
             if len(row[8]) > 0:
                 for participant in row[8]:
-                    gs.add_values_request(f"{co_op_sheet}!A{gs.get_next_row(co_op_sheet)}", [
+                    gs.add_values_request(f"{co_op_name}!A{gs.get_next_row(co_op_name)}", [
                         [participant["name"], "", participant["email"], participant["school"]]
                     ])
                     gs.add_values_request(f"Attendance!A{gs.get_next_row('Attendance')}", [
@@ -81,7 +91,7 @@ class GoogleSheetCreator(SpreadSheetBaseCreator):
                     []
             ])
             self.co_op_abbreviations.append(row[0])
-            self.format_generated_ws_sheet(gs, co_op_sheet, len(row[8]))
+            self.format_generated_ws_sheet(gs, co_op_name, len(row[8]))
 
         gs.add_values_request(
             f"Workshops!A{len(workshops)+4}",

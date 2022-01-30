@@ -41,12 +41,10 @@ class WorkshopsTool:
             workshop["workshop_credits"] = workshop_information["credits"]
             workshop["workshop_fees"] = workshop_information["fee"] 
             workshop["workshop_participant_info_list"] = self.construct_participant_info(workshop["workshop_id"])
-            workshops.append(workshop)
-    
+            workshops.append(workshop)    
         
         self.construct_workshop_database(workshops)
         self.connector.close_session()
-
 
     def construct_participant_info(self, id: str) -> dict:
         """
@@ -55,9 +53,6 @@ class WorkshopsTool:
         """
 
         content: list = self.connector.get_participant_page(id)
-
-        # Convert the content into a list omitting the first element in each.
-        content = [x.text.split("\n")[1:] for x in list(content)]
 
         participants = list()
 
