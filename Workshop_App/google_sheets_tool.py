@@ -20,7 +20,6 @@ class GoogleSheetsTool:
         self.service: Optional[Resource] = None
         self.sheet: Optional[Resource] = None
 
-
     def authenticate(self, service_account_file) -> None:
         """Athenticate and connect to Google services for spread sheets."""
         
@@ -36,7 +35,6 @@ class GoogleSheetsTool:
         response: dict = self.build_spread_sheet(creds)
         self.spreadsheet_id = response["id"]
 
-
     def build_spread_sheet(self, creds) -> dict:
         """Create a google sheet in the "parents" folder. """
 
@@ -48,18 +46,15 @@ class GoogleSheetsTool:
         }
         return drive.files().create(body=file_metadata).execute()
 
-
     def get_values_by_range(self, cell_range: str) -> Optional[dict]:
         """Returns the values of a specified range."""
         response = self.sheet.values().get(spreadsheetId=self.spreadsheet_id, range=cell_range).execute()
         return response.get("values")
 
-
     def get_next_row(self, sheet_name: str) -> int:
         """Returns the last row number that has been appended to the specified sheet."""
 
         return self.current_sheets[sheet_name]["next_row"]
-
 
     def get_sheet_properties(self) -> dict:
         """Return the spreadsheet properties as a dict.
@@ -72,13 +67,11 @@ class GoogleSheetsTool:
 
         return self.sheet.get(spreadsheetId=self.spreadsheet_id).execute()
 
-
     def set_file_and_folder_info(self, file_and_folder_info: tuple) -> None:
         """Set the filename and folder information for the sheet export."""
 
         self.filename = file_and_folder_info[0]
         self.folder_id = file_and_folder_info[1]
-
     
     def values_batch_update(self) -> None:
         """Batch updates all current value requests."""
@@ -86,7 +79,6 @@ class GoogleSheetsTool:
         values_body = {"valueInputOption": "USER_ENTERED", "data": self.update_values_requests}
         self.sheet.values().batchUpdate(spreadsheetId=self.spreadsheet_id, body=values_body).execute()
         self.update_values_requests.clear()
-
 
     def batch_update(self) -> None:
         """Batch updates all current requests."""
@@ -109,13 +101,11 @@ class GoogleSheetsTool:
             self.current_sheets[sheet_name]["next_row"] = next_row
 
         self.update_values_requests.append({"range": cell_range, "values": rows})
-
     
     def change_google_sheet_title_request(self, name: str) -> None:
             "Change the name of the google sheet."
 
             self.requests.append({"updateSpreadsheetProperties":{"properties":{"title": f"{name}"},"fields": "title"}})
-
 
     def change_sheet_name_request(self, old_name: str, new_name: str) -> None:
         """Change the name of the specified sheet."""
@@ -128,7 +118,6 @@ class GoogleSheetsTool:
             "fields": "title"
         }})
 
-
     def add_sheet_request(self, name: str) -> None:
         """Add a new sheet request to the Google Sheet."""
         
@@ -137,7 +126,6 @@ class GoogleSheetsTool:
 
         self.requests.append({"addSheet":{"properties":{"sheetId": self.current_sheets[name]["id"], "title": f"{name}"}}})
     
-
     def resize_request(self, cell_range: str, size: int) -> None:
         """Resize a column or row by specified number of pixels.
 
@@ -178,7 +166,6 @@ class GoogleSheetsTool:
         }
         self.requests.append(format_style)
 
-
     def align_and_wrap_cells_range_request(
         self, 
         cell_range: str, 
@@ -216,7 +203,6 @@ class GoogleSheetsTool:
         }
         self.requests.append(format_style)
 
-
     def merge_cells_range_request(self, cell_range: str, merge_type: str="MERGE_ALL") -> None:
         """Merge cells in the provided range based on merge type.
         Merge Types: MERGE_ALL, MERGE_COLUMNS, MERGE_ROWS
@@ -236,7 +222,6 @@ class GoogleSheetsTool:
             }
         }
         self.requests.append(format_style)
-
     
     def format_font_range_request(
         self,
@@ -279,7 +264,6 @@ class GoogleSheetsTool:
         }
         self.requests.append(format_style)
 
-
     def fill_range_request(self, cell_range: str, fill_color: tuple=(1, 1, 1)) -> None:
         """Set the background fill for a range of cells.
         Amount of (Red, Green, Blue)
@@ -307,7 +291,6 @@ class GoogleSheetsTool:
             }
         }
         self.requests.append(format_style)
-
 
     def set_outer_border_range_request(self,  cell_range: str, type: str="SOLID", color: tuple=(0, 0, 0)) -> None:
         """Set the outer border for a range of cells.
@@ -339,7 +322,6 @@ class GoogleSheetsTool:
         }
         self.requests.append(border_format)
 
-
     def set_bottom_border_range_request(self,  cell_range: str, type: str="SOLID", color: tuple=(0, 0, 0)) -> None:
         """Set the bottom border for a range of cells.
         Border types:
@@ -367,7 +349,6 @@ class GoogleSheetsTool:
         }
         self.requests.append(border_format)
 
-
     def process_range(self, cell_range: str) -> tuple:
         """Process the range into sheet_id and starting and ending cell."""
 
@@ -385,7 +366,6 @@ class GoogleSheetsTool:
             end_pair: list = [-1, -1]
 
         return [sheet_id, start_pair[0], start_pair[1]-1, end_pair[0] + 1, end_pair[1]]
-
         
     def process_cell_pair(self, pair: str) -> list:        
         """Determine the numerical value for the cell locations."""

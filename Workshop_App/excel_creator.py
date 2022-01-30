@@ -94,7 +94,6 @@ class ExcelCreator(SpreadSheetBaseCreator):
         # Only save file if the user provided a file name and didn't cancel.
         if save_file_info != "":
             workbook.save(filename=save_file_info)
-
     
     def format_workshops_sheet(self, worksheet) -> None:
         """Formats excel workshops sheet."""
@@ -118,7 +117,6 @@ class ExcelCreator(SpreadSheetBaseCreator):
 
         for row in range(3, last_row - 1):
             worksheet[f"H{row}"].value = f'=HYPERLINK("{worksheet[f"H{row}"].value}")'
-
 
     def format_generated_ws_sheet(self, worksheet) -> None:
         """General format for each Co-op sheet."""
@@ -156,7 +154,6 @@ class ExcelCreator(SpreadSheetBaseCreator):
         for row in range(8, worksheet._current_row + 1):
             worksheet.merge_cells(f"A{row}:B{row}")
             worksheet[f"D{row}"].alignment = self.align["left"]
-
 
     def format_attendance_sheet(self, worksheet) -> None:    
         """Formats excel attendance sheet."""        
