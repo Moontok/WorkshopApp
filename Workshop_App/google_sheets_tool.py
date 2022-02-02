@@ -5,8 +5,9 @@ from googleapiclient.discovery import build, Resource
 from google.oauth2 import service_account
 from typing import Optional
 
+
 class GoogleSheetsTool:
-    """Wrapper API for the Google API."""
+    """API Wrapper for the Google API."""
 
     def __init__(self):
 
