@@ -27,7 +27,7 @@ def main() -> None:
     ws = WorkshopsTool()
     ex_tool = ExcelCreator()
     google_tool = GoogleSheetCreator()
-
+    
     # Connect buttons and menu items.
     ui.buttonGetWorkshops.clicked.connect(lambda: helper_functions.generate_workshop_info(ui, ws))
     ui.actionIncrease_CTRL.triggered.connect(ui.increase_font)
