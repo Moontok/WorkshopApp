@@ -3,6 +3,7 @@ from spread_sheet_base_creator import SpreadSheetBaseCreator
 from google_sheets_tool import GoogleSheetsTool
 from gui_window import GuiWindow
 from typing import Optional
+from googleapiclient.errors import HttpError
 
 class GoogleSheetCreator(SpreadSheetBaseCreator):
 
@@ -97,8 +98,16 @@ class GoogleSheetCreator(SpreadSheetBaseCreator):
             [["Total:", f"{len(workshops)}", "", "Signed Up:", f"=SUM(E3:E{len(workshops)+3})"]]
         )
 
-        gs.batch_update()
-        gs.values_batch_update()
+        try:
+            gs.batch_update()
+            gs.values_batch_update()
+        except HttpError as error:
+            if "exceeds grid limits" in str(error.content):
+                gs.set_sheet_grid_properties_request("Attendance", 2000)
+                gs.batch_update()
+                gs.values_batch_update()
+            else:
+                raise HttpError("Problem with writing to the sheet...")
 
         self.format_workshops_sheet(gs, len(workshops))
         self.format_attendance_sheet(gs, workshop_rows)
@@ -203,7 +212,7 @@ class GoogleSheetCreator(SpreadSheetBaseCreator):
                 gs.align_and_wrap_cells_range_request(f"{sheet_name}!D{current_row}:E{current_row}", "RIGHT")
                             
             current_row += 2
-        
+
         gs.values_batch_update()
         gs.batch_update()
 

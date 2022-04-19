@@ -49,6 +49,7 @@ class GoogleSheetsTool:
 
     def get_values_by_range(self, cell_range: str) -> Optional[dict]:
         """Returns the values of a specified range."""
+
         response = self.sheet.values().get(spreadsheetId=self.spreadsheet_id, range=cell_range).execute()
         return response.get("values")
 
@@ -127,6 +128,21 @@ class GoogleSheetsTool:
 
         self.requests.append({"addSheet":{"properties":{"sheetId": self.current_sheets[name]["id"], "title": f"{name}"}}})
     
+
+    def set_sheet_grid_properties_request(self, name: str, number_of_rows: int=1000, number_of_columns: int=26):
+        """Changes the rows and columns for a sheet."""
+
+        new_grid_properties = {
+            "rowCount": number_of_rows,
+            "columnCount": number_of_columns
+        }
+
+        self.requests.append({"updateSheetProperties":{
+            "properties":{"sheetId": self.current_sheets[name]["id"], "gridProperties": new_grid_properties},
+            "fields": "gridProperties"
+        }})
+
+
     def resize_request(self, cell_range: str, size: int) -> None:
         """Resize a column or row by specified number of pixels.
 

@@ -26,23 +26,29 @@ class WorkshopsTool:
         workshops = list()        
 
         for workshop_info in workshops_from_instructor_page:
-            workshop = dict()
+            try:
+                workshop = dict()
 
-            workshop["workshop_id"] = workshop_info[0][:6]
-            workshop["workshop_start_date_and_time"] = workshop_info[1]          
-            workshop["workshop_url"] = f'{self.connector.get_connection_info_for("base_workshop_url")}{workshop["workshop_id"]}'
-            workshop_information: dict = self.connector.get_session_page_content(workshop["workshop_url"])
-            workshop["workshop_name"] = workshop_information["name"]
-            workshop["workshop_description"] = workshop_information["description"]
-            workshop["workshop_signed_up"] = workshop_information["seats_filled"].split(" / ")[0]
-            workshop["workshop_participant_capacity"] = workshop_information["seats_filled"].split(" / ")[1]
-            workshop["workshop_location"] =  workshop_information["location"]            
-            workshop["workshop_dates"] = workshop_information["dates"]
-            workshop["workshop_credits"] = workshop_information["credits"]
-            workshop["workshop_fees"] = workshop_information["fee"] 
-            workshop["workshop_participant_info_list"] = self.construct_participant_info(workshop["workshop_id"])
-            workshops.append(workshop)    
-        
+                workshop["workshop_id"] = workshop_info[0][:6]
+                workshop["workshop_start_date_and_time"] = workshop_info[1]          
+                workshop["workshop_url"] = f'{self.connector.get_connection_info_for("base_workshop_url")}{workshop["workshop_id"]}'
+
+                workshop_information: dict = self.connector.get_session_page_content(workshop["workshop_url"])
+                workshop["workshop_name"] = workshop_information["name"]
+                workshop["workshop_description"] = workshop_information["description"]
+                workshop["workshop_signed_up"] = workshop_information["seats_filled"].split(" / ")[0]
+                workshop["workshop_participant_capacity"] = workshop_information["seats_filled"].split(" / ")[1]
+                workshop["workshop_location"] =  workshop_information["location"]            
+                workshop["workshop_dates"] = workshop_information["dates"]
+                workshop["workshop_credits"] = workshop_information["credits"]
+                workshop["workshop_fees"] = workshop_information["fee"] 
+                workshop["workshop_participant_info_list"] = self.construct_participant_info(workshop["workshop_id"])
+                
+                workshops.append(workshop)    
+            except AttributeError as error:
+                print("Phantom Workshop", workshop["workshop_id"], workshop["workshop_url"])
+                print(error)
+    
         self.construct_workshop_database(workshops)
         self.connector.close_session()
 

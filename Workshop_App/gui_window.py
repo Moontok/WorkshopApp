@@ -75,10 +75,16 @@ class GuiWindow(Ui_MainWindow):
         google_filename_dialog.show()
         ok: bool = google_filename_dialog.exec_()        
         
+
         if ok and len(ui.filename_edit.text()) > 0 and len(ui.folder_id_edit.text()) > 0:
             filename: str = ui.filename_edit.text()
             folder_url: str = ui.folder_id_edit.text()
-            folder_id: str = self.strip_folder_id(folder_url)
+            try:
+                folder_id: str = self.strip_folder_id(folder_url)
+            except IndexError:
+                self.export_googlesheet_successful(False)
+                return None
+
             self.export_googlesheet_successful(True)
             return (filename, folder_id)
         else:
@@ -88,7 +94,7 @@ class GuiWindow(Ui_MainWindow):
 
     def strip_folder_id(self, url: str) -> str:
         """Returns teh folder ID"""
-
+        
         return url.split("folders/")[1]
 
 
