@@ -1,6 +1,6 @@
 # Workshop information gatherer.
 
-# This program gathers information about our teams workshops by
+# This program Gathers information about our teams workshops by
 # gathering the information directly from the website and storing
 # it into a searchable database.
 
