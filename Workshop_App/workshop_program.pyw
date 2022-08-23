@@ -6,13 +6,15 @@
 
 
 import sys
-import helper_functions
+
 from PyQt5.QtWidgets import QApplication, QMainWindow
 from workshop_tool import WorkshopsTool
 from gui_window import GuiWindow
 from splash_screen import SplashScreen
 from excel_creator import ExcelCreator
 from google_sheets_creator import GoogleSheetCreator
+
+import helper_functions
 
 
 def main() -> None:
