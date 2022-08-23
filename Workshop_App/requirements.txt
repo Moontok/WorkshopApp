@@ -1,0 +1,6 @@
+requests
+beautifulsoup4
+pyqt5
+openpyxl
+googleapi
+google
